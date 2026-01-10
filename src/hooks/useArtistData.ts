@@ -30,7 +30,7 @@ import {
 type EndorsementRow = Database["public"]["Tables"]["endorsements"]["Row"];
 type ContentRow = Database["public"]["Tables"]["contents"]["Row"];
 type MagazinesRow = Database["public"]["Tables"]["magazines"]["Row"];
-type CalendarEventRow = Database["public"]["Tables"]["calendar_events"]["Row"];
+type CalendarEventRow = Database["public"]["Tables"]["calendar"]["Row"];
 type FilmographyRow = Database["public"]["Tables"]["filmography"]["Row"];
 type DiscographyRow = Database["public"]["Tables"]["discography"]["Row"];
 type PerformanceRow = Database["public"]["Tables"]["performance"]["Row"];
@@ -146,7 +146,7 @@ export const useCalendarEvents = (sortOrder: "asc" | "desc") => {
     queryKey: ["calendar-events", sortOrder],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("calendar_events")
+        .from("calendar")
         .select("*, artist:artist_id ( name )")
         .order("date", { ascending: sortOrder === "asc" });
 

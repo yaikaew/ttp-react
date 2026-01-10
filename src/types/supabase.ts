@@ -29,7 +29,7 @@ export type Database = {
         }
         Relationships: []
       }
-      calendar_events: {
+      calendar: {
         Row: {
           artist_id: number | null
           date: string
