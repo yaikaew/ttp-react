@@ -10,7 +10,8 @@ import {
     Video,
     ArrowRight,
     Database,
-    ExternalLink
+    ExternalLink,
+    ArrowLeft
 } from 'lucide-react';
 
 const tables = [
@@ -30,14 +31,22 @@ const AdminDashboard = () => {
 
     return (
         <div className="p-8">
-            <div className="mb-10">
-                <h1 className="text-4xl font-black text-slate-800 flex items-center gap-4">
-                    <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-200">
-                        <Database size={32} />
-                    </div>
-                    Admin Dashboard
-                </h1>
-                <p className="text-slate-500 mt-4 text-lg">เลือกตารางข้อมูลที่ต้องการจัดการเพื่อ เริ่มต้นแก้ไข เพิ่ม หรือลบข้อมูล</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                <div>
+                    <h1 className="text-4xl font-black text-slate-800 flex items-center gap-4">
+                        <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-200">
+                            <Database size={32} />
+                        </div>
+                        Admin Dashboard
+                    </h1>
+                    <p className="text-slate-500 mt-4 text-lg">เลือกตารางข้อมูลที่ต้องการจัดการเพื่อ เริ่มต้นแก้ไข เพิ่ม หรือลบข้อมูล</p>
+                </div>
+                <button
+                    onClick={() => navigate('/')}
+                    className="flex items-center justify-center gap-2 px-6 py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all shadow-sm"
+                >
+                    <ArrowLeft size={16} /> กลับไปยังหน้าเว็บไซต์
+                </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

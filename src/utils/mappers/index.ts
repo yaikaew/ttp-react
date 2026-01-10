@@ -111,6 +111,11 @@ export interface PerformanceUI {
   note: string;
 }
 
+const fixArtistName = (name: string | null | undefined) => {
+  if (!name) return "Unknown";
+  return name.replace(/TeeteePor/g, "Teetee Por");
+};
+
 /* =======================
    MAPPERS
 ======================= */
@@ -118,7 +123,7 @@ export interface PerformanceUI {
 // artist
 export const mapArtistRowToUI = (row: ArtistRow): ArtistUI => ({
   id: row.id,
-  name: row.name,
+  name: fixArtistName(row.name),
 });
 
 // endorsements
@@ -132,7 +137,7 @@ export const mapEndorsementRowToUI = (
   img: row.img ?? "",
   link: row.link ?? "",
   date: row.date ?? "",
-  artistName: row.artist?.name ?? "Unknown",
+  artistName: fixArtistName(row.artist?.name),
 });
 
 // contents
@@ -145,7 +150,7 @@ export const mapContentRowToUI = (
   date: row.date ?? "",
   img: row.img ?? "",
   link: row.link ?? "",
-  artistName: row.artist?.name ?? "Unknown",
+  artistName: fixArtistName(row.artist?.name),
 });
 
 // magazines
@@ -153,7 +158,7 @@ export const mapMagazinesRowToUI = (
   row: WithArtistName<MagazinesRow>
 ): MagazinesUI => ({
   id: row.id,
-  artistName: row.artist?.name ?? "Unknown",
+  artistName: fixArtistName(row.artist?.name),
   name: row.name ?? "",
   issue: row.issue ?? "",
   date: row.date ?? "",
@@ -172,7 +177,7 @@ export const mapCalendarEventRowToUI = (
   time: row.time ?? "",
 
   // 👇 map ชื่อสั้น
-  artistName: row.artist?.name ?? "Unknown",
+  artistName: fixArtistName(row.artist?.name),
   poster: row.poster_url ?? "",
   live: row.live_platform ?? "",
   key: row.keyword ?? "",
@@ -195,7 +200,7 @@ export const mapFilmographyRowToUI = (
   status: row.status ?? "",
   synopsis: row.synopsis ?? "",
   poster: row.poster ?? "",
-  artistName: row.artist?.name ?? "Unknown",
+  artistName: fixArtistName(row.artist?.name),
   note: row.note ?? "",
   rerun_link1: row.rerun_link1 ?? "",
   rerun_link2: row.rerun_link2 ?? "",
@@ -205,7 +210,7 @@ export const mapDiscographyRowToUI = (
   row: WithArtistName<DiscographyRow>
 ): DiscographyUI => ({
   id: row.id,
-  artistName: row.artist?.name ?? "Unknown",
+  artistName: fixArtistName(row.artist?.name),
   title: row.title ?? "",
   date: row.date ?? "",
   img: row.img ?? "",
@@ -218,7 +223,7 @@ export const mapPerformanceRowToUI = (
   row: WithArtistName<PerformanceRow>
 ): PerformanceUI => ({
   id: row.id,
-  artistName: row.artist?.name ?? "Unknown",
+  artistName: fixArtistName(row.artist?.name),
   date: row.date ?? "",
   title: row.title ?? "",
   type: row.type ?? "",

@@ -16,7 +16,8 @@ import {
     X,
     Save,
     CheckCircle2,
-    Calendar as CalendarIcon
+    Calendar as CalendarIcon,
+    ArrowUpDown
 } from 'lucide-react';
 
 const ManagementPage = () => {
@@ -34,6 +35,7 @@ const ManagementPage = () => {
     const [filterArtist, setFilterArtist] = useState<string>('');
     const [filterStartDate, setFilterStartDate] = useState<string>('');
     const [filterEndDate, setFilterEndDate] = useState<string>('');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
     const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null);
     const [editData, setEditData] = useState<Record<string, unknown>>({});
@@ -50,16 +52,28 @@ const ManagementPage = () => {
 
         try {
             // Fetch data with artist relation
-            const { data: result, error: fetchError } = await supabase
+            let query = supabase
                 .from(tableName)
-                .select('*, artist:artist_id(name)')
-                .order('id', { ascending: false });
+                .select('*, artist:artist_id(name)');
+
+            // Check if 'date' column exists for sorting, fallback to 'id' if not
+            // For now we assume tables except artist have date or we fallback to id in the UI if not
+            if (tableName === 'artist') {
+                query = query.order('id', { ascending: sortOrder === 'asc' });
+            } else {
+                // We try sorting by date first, if it fails (not in DB), we fallback to id
+                query = query.order('date', { ascending: sortOrder === 'asc', nullsFirst: false });
+                query = query.order('id', { ascending: sortOrder === 'asc' });
+            }
+
+            const { data: result, error: fetchError } = await query;
 
             if (fetchError) {
+                // Fallback attempt if date sort fails
                 const { data: fallbackResult, error: fallbackError } = await supabase
                     .from(tableName)
                     .select('*')
-                    .order('id', { ascending: false });
+                    .order('id', { ascending: sortOrder === 'asc' });
 
                 if (fallbackError) throw fallbackError;
                 setData((fallbackResult as Record<string, unknown>[]) || []);
@@ -80,7 +94,7 @@ const ManagementPage = () => {
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tableName]);
+    }, [tableName, sortOrder]);
 
     const handleDelete = async (e: React.MouseEvent, id: string | number) => {
         e.stopPropagation();
@@ -336,7 +350,7 @@ const ManagementPage = () => {
                                 ))}
                             </select>
                         </div>
-                        <div className="space-y-2 md:col-span-2">
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">ช่วงวันที่ (เริ่มต้น - สิ้นสุด)</label>
                             <div className="flex items-center gap-3">
                                 <div className="relative flex-1">
@@ -345,7 +359,7 @@ const ManagementPage = () => {
                                         type="date"
                                         value={filterStartDate}
                                         onChange={(e) => setFilterStartDate(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 pl-11 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 transition-all"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 pl-11 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 text-xs transition-all"
                                     />
                                 </div>
                                 <span className="text-slate-300">-</span>
@@ -355,9 +369,24 @@ const ManagementPage = () => {
                                         type="date"
                                         value={filterEndDate}
                                         onChange={(e) => setFilterEndDate(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 pl-11 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 transition-all"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 pl-11 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 text-xs transition-all"
                                     />
                                 </div>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">เรียงลำดับ ({tableName === 'artist' ? 'ID' : 'วันที่'})</label>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => {
+                                        const nextOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                                        setSortOrder(nextOrder);
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3.5 font-bold text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 transition-all"
+                                >
+                                    <ArrowUpDown size={18} className="text-indigo-500" />
+                                    {sortOrder === 'asc' ? 'น้อยไปมาก (เก่า → ใหม่)' : 'มากไปน้อย (ใหม่ → เก่า)'}
+                                </button>
                                 <button
                                     onClick={resetFilters}
                                     className="p-3.5 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
@@ -502,6 +531,15 @@ const ManagementPage = () => {
                                                         {value ? 'เปิดใช้งาน (Enabled)' : 'ปิดใช้งาน (Disabled)'}
                                                     </label>
                                                 </div>
+                                            ) : isDate ? (
+                                                <div className="relative group">
+                                                    <input
+                                                        type="date"
+                                                        value={String(value ?? '').split('T')[0]}
+                                                        onChange={(e) => handleInputChange(key, e.target.value)}
+                                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                    />
+                                                </div>
                                             ) : (
                                                 <div className="relative group">
                                                     {isImageUrl && value ? (
@@ -515,7 +553,7 @@ const ManagementPage = () => {
                                                         disabled={isId}
                                                         rows={isImageUrl || key === 'description' ? 3 : 1}
                                                         className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium text-slate-700 ${isId ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
-                                                        placeholder={isDate ? 'YYYY-MM-DD' : `ระบุ ${key}...`}
+                                                        placeholder={`ระบุ ${key}...`}
                                                     />
                                                 </div>
                                             )}
