@@ -16,12 +16,12 @@ const ProfilePage: React.FC = () => {
             image: "https://pbs.twimg.com/media/GuB0uEoWMAAHVIT?format=jpg&name=large",
             emoji: "🐻‍❄️",
             socials: {
-                instagram: "@porsuppakarn",
-                instagramlink: "",
+                instagram: "porsuppakarn",
+                instagramlink: "https://www.instagram.com/porsuppakarn",
                 twitter: "@porsuppakarn",
-                twitterlink: "",
-                tiktok: "@porsuppakarn",
-                tiktoklink: "",
+                twitterlink: "https://x.com/porsuppakarn",
+                tiktok: "porsuppakarn",
+                tiktoklink: "https://www.tiktok.com/@porsuppakarn",
             }
         },
         {
@@ -37,12 +37,12 @@ const ProfilePage: React.FC = () => {
             image: "https://pbs.twimg.com/media/Gt93Ot5WYAAMRKO?format=jpg&name=4096x4096",
             emoji: "🐶",
             socials: {
-                instagram: "@teetee_official",
-                instagramlink: "",
-                twitter: "@teetee_tw",
-                twitterlink: "",
-                tiktok: "@teetee_tt",
-                tiktoklink: "",
+                instagram: "twnpich",
+                instagramlink: "https://www.instagram.com/twnpich/",
+                twitter: "@twnpich",
+                twitterlink: "https://x.com/twnpich",
+                tiktok: "@teetee.wpc",
+                tiktoklink: "https://www.tiktok.com/@teetee.wpc",
             }
         }
     ];
