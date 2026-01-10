@@ -223,7 +223,7 @@ export type Database = {
           role_por: string | null
           role_teetee: string | null
           status: string | null
-          storyline: string | null
+          synopsis: string | null
           title: string
         }
         Insert: {
@@ -237,7 +237,7 @@ export type Database = {
           role_por?: string | null
           role_teetee?: string | null
           status?: string | null
-          storyline?: string | null
+          synopsis?: string | null
           title: string
         }
         Update: {
@@ -251,7 +251,7 @@ export type Database = {
           role_por?: string | null
           role_teetee?: string | null
           status?: string | null
-          storyline?: string | null
+          synopsis?: string | null
           title?: string
         }
         Relationships: [
@@ -260,6 +260,128 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artist"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      filmographydetail: {
+        Row: {
+          bts_link: string | null
+          created_at: string | null
+          filmography_id: number | null
+          hashtag: string | null
+          highlight_link: string | null
+          id: number
+          link1: string | null
+          link10: string | null
+          link11: string | null
+          link12: string | null
+          link2: string | null
+          link3: string | null
+          link4: string | null
+          link5: string | null
+          link6: string | null
+          link7: string | null
+          link8: string | null
+          link9: string | null
+          linktrailer: string | null
+          porimg: string | null
+          tag1: string | null
+          tag10: string | null
+          tag11: string | null
+          tag12: string | null
+          tag2: string | null
+          tag3: string | null
+          tag4: string | null
+          tag5: string | null
+          tag6: string | null
+          tag7: string | null
+          tag8: string | null
+          tag9: string | null
+          tagtrailer: string | null
+          teeteeimg: string | null
+          trailerid: string | null
+        }
+        Insert: {
+          bts_link?: string | null
+          created_at?: string | null
+          filmography_id?: number | null
+          hashtag?: string | null
+          highlight_link?: string | null
+          id?: number
+          link1?: string | null
+          link10?: string | null
+          link11?: string | null
+          link12?: string | null
+          link2?: string | null
+          link3?: string | null
+          link4?: string | null
+          link5?: string | null
+          link6?: string | null
+          link7?: string | null
+          link8?: string | null
+          link9?: string | null
+          linktrailer?: string | null
+          porimg?: string | null
+          tag1?: string | null
+          tag10?: string | null
+          tag11?: string | null
+          tag12?: string | null
+          tag2?: string | null
+          tag3?: string | null
+          tag4?: string | null
+          tag5?: string | null
+          tag6?: string | null
+          tag7?: string | null
+          tag8?: string | null
+          tag9?: string | null
+          tagtrailer?: string | null
+          teeteeimg?: string | null
+          trailerid?: string | null
+        }
+        Update: {
+          bts_link?: string | null
+          created_at?: string | null
+          filmography_id?: number | null
+          hashtag?: string | null
+          highlight_link?: string | null
+          id?: number
+          link1?: string | null
+          link10?: string | null
+          link11?: string | null
+          link12?: string | null
+          link2?: string | null
+          link3?: string | null
+          link4?: string | null
+          link5?: string | null
+          link6?: string | null
+          link7?: string | null
+          link8?: string | null
+          link9?: string | null
+          linktrailer?: string | null
+          porimg?: string | null
+          tag1?: string | null
+          tag10?: string | null
+          tag11?: string | null
+          tag12?: string | null
+          tag2?: string | null
+          tag3?: string | null
+          tag4?: string | null
+          tag5?: string | null
+          tag6?: string | null
+          tag7?: string | null
+          tag8?: string | null
+          tag9?: string | null
+          tagtrailer?: string | null
+          teeteeimg?: string | null
+          trailerid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "filmographydetail_filmography_id_fkey"
+            columns: ["filmography_id"]
+            isOneToOne: false
+            referencedRelation: "filmography"
             referencedColumns: ["id"]
           },
         ]

@@ -82,7 +82,7 @@ export interface FilmographyUI {
   poster: string;
   status: string;
   note: string;
-  storyline: string;
+  synopsis: string;
   rerun_link1: string;
   rerun_link2: string;
   role_teetee: string;
@@ -193,7 +193,7 @@ export const mapFilmographyRowToUI = (
   role_teetee: row.role_teetee ?? "",
   role_por: row.role_por ?? "",
   status: row.status ?? "",
-  storyline: row.storyline ?? "",
+  synopsis: row.synopsis ?? "",
   poster: row.poster ?? "",
   artistName: row.artist?.name ?? "Unknown",
   note: row.note ?? "",

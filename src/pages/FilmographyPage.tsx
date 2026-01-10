@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Tv, CirclePlay, SearchX } from 'lucide-react';
+import { Tv, CirclePlay, SearchX, Layout } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import FilterHeader from '../components/FilterHeader';
 import { useFilmography, useArtists } from '../hooks/useArtistData';
 
@@ -112,8 +113,14 @@ const FilmographyPage = () => {
                                             </div>
                                         </div>
 
-                                        {/* Watch Button */}
-                                        <div className="mt-auto">
+                                        {/* Action Buttons */}
+                                        <div className="mt-auto grid grid-cols-2 gap-2">
+                                            <Link
+                                                to={`/filmography/${item.id}`}
+                                                className="flex items-center justify-center gap-1.5 py-2.5 bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-wider transition-all"
+                                            >
+                                                <Layout size={14} /> Detail
+                                            </Link>
                                             <a
                                                 href={item.rerun_link1}
                                                 target="_blank"

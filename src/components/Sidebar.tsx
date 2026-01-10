@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Home, User, Film, Heart, Menu, X, ChevronRight, Sparkles, Disc3, PlayCircle, Calendar, BookOpen, Tag, Video } from 'lucide-react';
+import { Home, User, Film, Heart, Menu, X, ChevronRight, Sparkles, Disc3, PlayCircle, Calendar, BookOpen, Tag, Video, LogOut, Database } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../hooks/useAuth';
 
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const location = useLocation();
+    const { user } = useAuth();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        window.location.reload();
+    };
 
     const menuItems = [
         { name: 'Home', path: '/', icon: Home },
@@ -95,7 +103,28 @@ const Sidebar = () => {
                     </nav>
 
                     {/* Footer Sidebar */}
-                    <div className="pt-6 border-t border-slate-50">
+                    <div className="pt-6 space-y-2 border-t border-slate-50">
+                        {user && (
+                            <div className="px-2 mb-4">
+                                <Link to="/admin" className="flex items-center gap-3 p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100 mb-2 hover:bg-indigo-50 transition-all group/admin">
+                                    <div className="w-8 h-8 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-bold text-xs shadow-lg shadow-indigo-200 group-hover/admin:scale-110 transition-transform">
+                                        <Database size={16} />
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Admin Dashboard</span>
+                                        <span className="text-xs font-bold text-slate-700 truncate">{user.email}</span>
+                                    </div>
+                                </Link>
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-2xl transition-all font-bold text-xs"
+                                >
+                                    <LogOut size={18} />
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                        )}
+
                         <a
                             href="https://x.com/yorkorrrr"
                             target="_blank"

@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { Calendar, Clock, MapPin, Star, Video, ArrowUpRight, Play } from 'lucide-react';
+import { Calendar, Clock, MapPin, Star, Video, ArrowUpRight, Play, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCalendarEvents } from '../hooks/useArtistData';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabaseClient';
 
 const RECOMMENDED_LIST = [
     {
@@ -31,7 +33,13 @@ const RECOMMENDED_LIST = [
 ];
 
 const HomePage = () => {
+    const { user } = useAuth();
     const { data: allSchedules, isLoading: isCalendarLoading } = useCalendarEvents('asc');
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        window.location.reload();
+    };
 
     const upcomingEvents = useMemo(() => {
         if (!allSchedules) return [];
@@ -62,7 +70,16 @@ const HomePage = () => {
                             Official Artist Monitoring Dashboard
                         </p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
+                        {user && (
+                            <button
+                                onClick={handleLogout}
+                                className="px-4 py-2 bg-red-50 text-red-500 rounded-2xl border border-red-100 flex items-center gap-2 shadow-sm hover:bg-red-500 hover:text-white transition-all font-bold text-xs"
+                            >
+                                <LogOut size={14} />
+                                Logout
+                            </button>
+                        )}
                         <div className="px-4 py-2 bg-white rounded-2xl border border-slate-200 flex items-center gap-2 shadow-sm">
                             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Updates</span>
