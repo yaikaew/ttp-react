@@ -1,6 +1,7 @@
 import './App.css'
 import { Routes, Route } from "react-router-dom"
-import Sidebar from './components/Sidebar' // เปลี่ยนจาก Navbar เป็น Sidebar
+import ScrollToTop from './components/ScrollToTop';
+import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import CalendarPage from './pages/CalendarPage'
@@ -14,6 +15,7 @@ import ContentPage from './pages/ContentPage'
 function App() {
   return (
     <div className="min-h-screen bg-slate-50 font-baijamjuree">
+      <ScrollToTop />
       <Sidebar />
       <main className="lg:ml-64 min-h-screen pt-20 lg:pt-0 transition-all duration-300">
         <div className="max-w-7xl mx-auto">
