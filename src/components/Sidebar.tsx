@@ -57,7 +57,7 @@ const Sidebar = () => {
 
             {/* Sidebar Container */}
             <aside className={`fixed inset-y-0 left-0 z-70 w-64 bg-white border-r border-slate-100 transform transition-transform duration-500 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="flex flex-col h-full p-6">
+                <div className="flex flex-col h-full p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
 
                     {/* Logo Section */}
                     <div className="flex items-center gap-3 mb-10 px-2">
