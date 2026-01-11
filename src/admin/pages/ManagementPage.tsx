@@ -56,13 +56,15 @@ const ManagementPage = () => {
                 .from(tableName)
                 .select('*, artist:artist_id(name)');
 
-            // Check if 'date' column exists for sorting, fallback to 'id' if not
-            // For now we assume tables except artist have date or we fallback to id in the UI if not
-            if (tableName === 'artist') {
+            // Explicit list of tables that have a 'date' column for sorting
+            const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents'];
+            const isDateTable = tableName && dateTables.includes(tableName);
+
+            if (isDateTable) {
+                query = query.order('date', { ascending: sortOrder === 'asc', nullsFirst: false });
                 query = query.order('id', { ascending: sortOrder === 'asc' });
             } else {
-                // We try sorting by date first, if it fails (not in DB), we fallback to id
-                query = query.order('date', { ascending: sortOrder === 'asc', nullsFirst: false });
+                // For tables like 'artist' and 'filmographydetail' (or fallback), sort by ID
                 query = query.order('id', { ascending: sortOrder === 'asc' });
             }
 
@@ -375,26 +377,38 @@ const ManagementPage = () => {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">เรียงลำดับ ({tableName === 'artist' ? 'ID' : 'วันที่'})</label>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => {
-                                        const nextOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-                                        setSortOrder(nextOrder);
-                                    }}
-                                    className="flex-1 flex items-center justify-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3.5 font-bold text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 transition-all"
-                                >
-                                    <ArrowUpDown size={18} className="text-indigo-500" />
-                                    {sortOrder === 'asc' ? 'น้อยไปมาก (เก่า → ใหม่)' : 'มากไปน้อย (ใหม่ → เก่า)'}
-                                </button>
-                                <button
-                                    onClick={resetFilters}
-                                    className="p-3.5 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
-                                    title="ล้างตัวกรอง"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
+                            {(() => {
+                                const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents'];
+                                const isDateTable = tableName && dateTables.includes(tableName);
+                                return (
+                                    <>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                                            เรียงลำดับ ({isDateTable ? 'วันที่' : 'ID'})
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    const nextOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                                                    setSortOrder(nextOrder);
+                                                }}
+                                                className="flex-1 flex items-center justify-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3.5 font-bold text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 transition-all"
+                                            >
+                                                <ArrowUpDown size={18} className="text-indigo-500" />
+                                                {sortOrder === 'asc'
+                                                    ? (isDateTable ? 'เก่า → ใหม่' : 'ID น้อย → มาก')
+                                                    : (isDateTable ? 'ใหม่ → เก่า' : 'ID มาก → น้อย')}
+                                            </button>
+                                            <button
+                                                onClick={resetFilters}
+                                                className="p-3.5 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
+                                                title="ล้างตัวกรอง"
+                                            >
+                                                <X size={20} />
+                                            </button>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
                     </div>
                 )}
@@ -493,73 +507,137 @@ const ManagementPage = () => {
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
-                            {Object.entries(editData)
-                                .filter(([key]) => key !== 'artist')
-                                .map(([key, value]) => {
+                            {(() => {
+                                const entries = Object.entries(editData).filter(([key]) => key !== 'artist');
+
+                                if (tableName === 'filmographydetail') {
+                                    const getSortScore = (key: string) => {
+                                        if (key === 'id') return -2;
+                                        if (key === 'filmography_id') return -1;
+
+                                        const match = key.match(/^(tag|engage|link|tagtrailer|engagetrailer|linktrailer)(\d+)?$/);
+                                        if (!match) return 999;
+
+                                        const prefix = match[1];
+                                        const numStr = match[2];
+
+                                        let base = 0;
+                                        if (prefix.includes('trailer')) {
+                                            base = 10;
+                                        } else if (numStr) {
+                                            base = (parseInt(numStr) * 10) + 10;
+                                        }
+
+                                        const subPriority: Record<string, number> = { tag: 0, engage: 1, link: 2, tagtrailer: 0, engagetrailer: 1, linktrailer: 2 };
+                                        return base + (subPriority[prefix] ?? 0);
+                                    };
+
+                                    entries.sort((a, b) => getSortScore(a[0]) - getSortScore(b[0]));
+                                }
+
+                                return entries.map(([key, value], index) => {
                                     const isId = key === 'id';
                                     const isArtistId = key === 'artist_id';
                                     const isDate = key.includes('date');
                                     const isImageUrl = key.includes('url') || key.includes('image');
 
-                                    return (
-                                        <div key={key} className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                                                {key.replace('_', ' ')}
-                                            </label>
+                                    // Special Header for Filmography Detail Groups
+                                    let sectionHeader = null;
+                                    if (tableName === 'filmographydetail') {
+                                        const currentMatch = key.match(/\d+$/);
+                                        const currentNum = currentMatch ? currentMatch[0] : (key.includes('trailer') ? 'Trailer' : null);
 
-                                            {isArtistId ? (
-                                                <select
-                                                    value={String(value ?? '')}
-                                                    onChange={(e) => handleInputChange(key, e.target.value ? Number(e.target.value) : null)}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
-                                                >
-                                                    <option value="">เลือกศิลปิน</option>
-                                                    {artists.map(a => (
-                                                        <option key={a.id} value={a.id}>{a.name}</option>
-                                                    ))}
-                                                </select>
-                                            ) : typeof value === 'boolean' ? (
-                                                <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={key}
-                                                        checked={value}
-                                                        onChange={(e) => handleInputChange(key, e.target.checked)}
-                                                        className="w-6 h-6 rounded-lg text-indigo-600 focus:ring-indigo-600 border-slate-300 transition-all"
-                                                    />
-                                                    <label htmlFor={key} className="font-bold text-slate-700 select-none cursor-pointer">
-                                                        {value ? 'เปิดใช้งาน (Enabled)' : 'ปิดใช้งาน (Disabled)'}
-                                                    </label>
+                                        const prevKey = index > 0 ? entries[index - 1][0] : null;
+                                        const prevMatch = prevKey?.match(/\d+$/);
+                                        const prevNum = prevMatch ? prevMatch[0] : (prevKey?.includes('trailer') ? 'Trailer' : null);
+
+                                        if (currentNum && currentNum !== prevNum) {
+                                            sectionHeader = (
+                                                <div className="pt-6 pb-2 border-b border-slate-100 mb-4 first:pt-0">
+                                                    <h3 className="text-sm font-black text-indigo-600 uppercase tracking-widest">
+                                                        {currentNum === 'Trailer' ? 'Official Trailer Section' : `Episode ${currentNum} Section`}
+                                                    </h3>
                                                 </div>
-                                            ) : isDate ? (
-                                                <div className="relative group">
-                                                    <input
-                                                        type="date"
-                                                        value={String(value ?? '').split('T')[0]}
-                                                        onChange={(e) => handleInputChange(key, e.target.value)}
-                                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="relative group">
-                                                    {isImageUrl && value ? (
-                                                        <div className="mb-4">
-                                                            <img src={value as string} alt="" className="max-h-48 w-full object-cover rounded-2xl border border-slate-200 shadow-md" />
-                                                        </div>
-                                                    ) : null}
-                                                    <textarea
+                                            );
+                                        }
+                                    }
+
+                                    return (
+                                        <div key={key}>
+                                            {sectionHeader}
+                                            <div className="space-y-2 mb-4">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                                                    {key.replace('_', ' ')}
+                                                </label>
+
+                                                {isArtistId ? (
+                                                    <select
                                                         value={String(value ?? '')}
-                                                        onChange={(e) => handleInputChange(key, e.target.value)}
-                                                        disabled={isId}
-                                                        rows={isImageUrl || key === 'description' ? 3 : 1}
-                                                        className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium text-slate-700 ${isId ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
-                                                        placeholder={`ระบุ ${key}...`}
-                                                    />
-                                                </div>
-                                            )}
+                                                        onChange={(e) => handleInputChange(key, e.target.value ? Number(e.target.value) : null)}
+                                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                    >
+                                                        <option value="">เลือกศิลปิน</option>
+                                                        {artists.map(a => (
+                                                            <option key={a.id} value={a.id}>{a.name}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : typeof value === 'boolean' ? (
+                                                    <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                                                        <input
+                                                            type="checkbox"
+                                                            id={key}
+                                                            checked={value}
+                                                            onChange={(e) => handleInputChange(key, e.target.checked)}
+                                                            className="w-6 h-6 rounded-lg text-indigo-600 focus:ring-indigo-600 border-slate-300 transition-all"
+                                                        />
+                                                        <label htmlFor={key} className="font-bold text-slate-700 select-none cursor-pointer">
+                                                            {value ? 'เปิดใช้งาน (Enabled)' : 'ปิดใช้งาน (Disabled)'}
+                                                        </label>
+                                                    </div>
+                                                ) : (tableName === 'contents' && key === 'type') ? (
+                                                    <div className="relative group">
+                                                        <select
+                                                            value={String(value ?? '')}
+                                                            onChange={(e) => handleInputChange(key, e.target.value)}
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                        >
+                                                            <option value="">เลือกประเภทคอนเทนต์</option>
+                                                            {['Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Live Event', 'Interview'].map(opt => (
+                                                                <option key={opt} value={opt}>{opt}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                ) : isDate ? (
+                                                    <div className="relative group">
+                                                        <input
+                                                            type="date"
+                                                            value={String(value ?? '').split('T')[0]}
+                                                            onChange={(e) => handleInputChange(key, e.target.value)}
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative group">
+                                                        {isImageUrl && value ? (
+                                                            <div className="mb-4">
+                                                                <img src={value as string} alt="" className="max-h-48 w-full object-cover rounded-2xl border border-slate-200 shadow-md" />
+                                                            </div>
+                                                        ) : null}
+                                                        <textarea
+                                                            value={String(value ?? '')}
+                                                            onChange={(e) => handleInputChange(key, e.target.value)}
+                                                            disabled={isId}
+                                                            rows={isImageUrl || key === 'description' ? 3 : 1}
+                                                            className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium text-slate-700 ${isId ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
+                                                            placeholder={`ระบุ ${key}...`}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     );
-                                })}
+                                });
+                            })()}
                         </div>
 
                         <div className="p-6 border-t border-slate-100 bg-white flex gap-4">

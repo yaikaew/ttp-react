@@ -93,7 +93,7 @@ const FilmographyDetailPage = () => {
     if (detail) {
         // Add Trailer Tag first if it exists
         if (detail.tagtrailer) {
-            const trailerHashtagLink = `https://x.com/hashtag/${String(detail.tagtrailer).replace('#', '')}?src=hashtag_click`;
+            const trailerHashtagLink = `${String(detail.linktrailer)}`;
             trendTags.push({
                 label: "Official Trailer",
                 tag: String(detail.tagtrailer),
@@ -106,8 +106,9 @@ const FilmographyDetailPage = () => {
         for (let i = 1; i <= 12; i++) {
             const tag = detail[`tag${i}`];
             const engage = detail[`engage${i}`];
+            const link = detail[`link${i}`];
             if (tag) {
-                const hashtagLink = `https://x.com/hashtag/${String(tag).replace('#', '')}?src=hashtag_click`;
+                const hashtagLink = link ? String(link) : `https://x.com/hashtag/${String(tag).replace('#', '')}?src=hashtag_click`;
                 trendTags.push({
                     label: `Episode ${i}`,
                     tag: String(tag),
