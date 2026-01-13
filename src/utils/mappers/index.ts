@@ -72,6 +72,7 @@ export interface CalendarEventUI {
   link: string;
   location: string;
   note: string;
+  type: string;
 }
 
 export interface FilmographyUI {
@@ -187,6 +188,7 @@ export const mapCalendarEventRowToUI = (
 
   location: row.location ?? "",
   note: row.note ?? "",
+  type: row.type ?? "",
 });
 
 export const mapFilmographyRowToUI = (

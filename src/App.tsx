@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import CalendarPage from './pages/CalendarPage'
+import CalendarTablePage from './pages/CalendarTablePage'
 import FilmographyPage from './pages/FilmographyPage'
 import DiscographyPage from './pages/DiscographyPage'
 import PerformancePage from './pages/PerformancePage'
@@ -54,6 +55,7 @@ function App() {
 
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/calendar-table" element={<CalendarTablePage />} />
             <Route path="/filmography" element={<FilmographyPage />} />
             <Route path="/filmography/:id" element={<FilmographyDetailPage />} />
             <Route path="/discography" element={<DiscographyPage />} />

@@ -155,6 +155,8 @@ const ManagementPage = () => {
             const firstRowValue = data[0]?.[col];
             if (typeof firstRowValue === 'boolean') {
                 template[col] = false;
+            } else if (tableName === 'contents' && col === 'img') {
+                template[col] = 'https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg';
             } else {
                 template[col] = '';
             }
@@ -237,7 +239,7 @@ const ManagementPage = () => {
         return [];
     };
 
-    const renderCellValue = (row: Record<string, unknown>, col: string) => {
+    const renderCellValue = (row: Record<string, unknown>, col: string, isToday: boolean = false) => {
         if (col === 'artist_id' && row.artist) {
             const artist = row.artist as { name: string };
             return (
@@ -264,10 +266,19 @@ const ManagementPage = () => {
             );
         }
 
+        const isNameColumn = col === 'name' || col === 'title' || col === 'event';
+
         return (
-            <span className="text-sm font-medium text-slate-600 truncate max-w-[150px] md:max-w-[200px] block">
-                {String(value ?? '-')}
-            </span>
+            <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium truncate max-w-[150px] md:max-w-[200px] block ${isToday && isNameColumn ? 'text-red-600 font-bold' : 'text-slate-600'}`}>
+                    {String(value ?? '-')}
+                </span>
+                {isToday && isNameColumn && (
+                    <span className="px-2 py-0.5 bg-red-600 text-white text-[9px] font-black rounded-md uppercase tracking-wide animate-pulse shadow-sm shadow-red-200">
+                        Today
+                    </span>
+                )}
+            </div>
         );
     };
 
@@ -452,32 +463,38 @@ const ManagementPage = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {filteredData.map((row) => (
-                                    <tr
-                                        key={String(row.id)}
-                                        onClick={() => handleEdit(row)}
-                                        className="hover:bg-indigo-50/50 transition-colors group cursor-pointer"
-                                    >
-                                        {getVisibleColumns().map(col => (
-                                            <td key={col} className="px-6 py-5">
-                                                {renderCellValue(row, col)}
-                                            </td>
-                                        ))}
-                                        <td className="sticky right-0 bg-white group-hover:bg-indigo-50/50 px-6 py-5 text-right z-10 shadow-[-12px_0_12px_-12px_rgba(0,0,0,0.1)] transition-colors">
-                                            <div className="flex items-center justify-end gap-2 md:opacity-0 group-hover:md:opacity-100 transition-opacity">
-                                                <div className="p-2 text-indigo-600 bg-indigo-50 rounded-xl group-hover:bg-white transition-colors">
-                                                    <Edit3 size={18} />
+                                {filteredData.map((row) => {
+                                    const isToday = tableName === 'calendar' &&
+                                        typeof row.date === 'string' &&
+                                        new Date(row.date).toDateString() === new Date().toDateString();
+
+                                    return (
+                                        <tr
+                                            key={String(row.id)}
+                                            onClick={() => handleEdit(row)}
+                                            className={`transition-colors group cursor-pointer ${isToday ? 'bg-red-50/70 hover:bg-red-100' : 'hover:bg-indigo-50/50'}`}
+                                        >
+                                            {getVisibleColumns().map(col => (
+                                                <td key={col} className="px-6 py-5">
+                                                    {renderCellValue(row, col, isToday)}
+                                                </td>
+                                            ))}
+                                            <td className="sticky right-0 bg-white group-hover:bg-indigo-50/50 px-6 py-5 text-right z-10 shadow-[-12px_0_12px_-12px_rgba(0,0,0,0.1)] transition-colors">
+                                                <div className="flex items-center justify-end gap-2 md:opacity-0 group-hover:md:opacity-100 transition-opacity">
+                                                    <div className="p-2 text-indigo-600 bg-indigo-50 rounded-xl group-hover:bg-white transition-colors">
+                                                        <Edit3 size={18} />
+                                                    </div>
+                                                    <button
+                                                        onClick={(e) => handleDelete(e, row.id as string | number)}
+                                                        className="p-2 text-red-500 bg-red-50 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={(e) => handleDelete(e, row.id as string | number)}
-                                                    className="p-2 text-red-500 bg-red-50 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                         {filteredData.length === 0 && (
