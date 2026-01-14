@@ -29,6 +29,53 @@ export type Database = {
         };
         Relationships: [];
       };
+      awards: {
+        Row: {
+          artist_id: number | null;
+          award: string;
+          category: string;
+          date: string;
+          id: number;
+          img: string | null;
+          link: string | null;
+          link2: string | null;
+          note: string | null;
+          result: string;
+        };
+        Insert: {
+          artist_id?: number | null;
+          award: string;
+          category: string;
+          date: string;
+          id?: number;
+          img?: string | null;
+          link?: string | null;
+          link2?: string | null;
+          note?: string | null;
+          result: string;
+        };
+        Update: {
+          artist_id?: number | null;
+          award?: string;
+          category?: string;
+          date?: string;
+          id?: number;
+          img?: string | null;
+          link?: string | null;
+          link2?: string | null;
+          note?: string | null;
+          result?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "awards_artist_id_fkey";
+            columns: ["artist_id"];
+            isOneToOne: false;
+            referencedRelation: "artist";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       calendar: {
         Row: {
           artist_id: number | null;

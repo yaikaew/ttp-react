@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Home, User, Film, Heart, Menu, X, ChevronRight, Sparkles, Disc3, PlayCircle, Calendar, BookOpen, Tag, Video, LogOut, Database } from 'lucide-react';
+import { Home, User, Film, Heart, Menu, X, ChevronRight, Sparkles, Disc3, PlayCircle, Calendar, BookOpen, Tag, Video, LogOut, Database, Trophy } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
@@ -24,6 +24,7 @@ const Sidebar = () => {
         { name: 'Content', path: '/content', icon: Video },
         { name: 'Magazines', path: '/magazines', icon: BookOpen },
         { name: 'Endorsements', path: '/endorsements', icon: Tag },
+        { name: 'Awards', path: '/awards', icon: Trophy },
     ];
 
     useEffect(() => {

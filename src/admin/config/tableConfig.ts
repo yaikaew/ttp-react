@@ -53,6 +53,11 @@ export const TABLE_CONFIGS: Record<string, TableConfig> = {
     name: "คอนเทนต์",
     importantColumns: ["date", "type", "name", "artist_id"],
   },
+  awards: {
+    id: "awards",
+    name: "รางวัล (Awards)",
+    importantColumns: ["date", "award", "category", "result", "artist_id"],
+  },
   filmographydetail: {
     id: "filmographydetail",
     name: "รายละเอียดผลงาน (Deep Detail)",

@@ -4,6 +4,7 @@ import type { Database } from "../../types/supabase";
    DB Row Types
 ======================= */
 type ArtistRow = Database["public"]["Tables"]["artist"]["Row"];
+type AwardsRow = Database["public"]["Tables"]["awards"]["Row"];
 type EndorsementRow = Database["public"]["Tables"]["endorsements"]["Row"];
 type ContentRow = Database["public"]["Tables"]["contents"]["Row"];
 type MagazinesRow = Database["public"]["Tables"]["magazines"]["Row"];
@@ -112,6 +113,19 @@ export interface PerformanceUI {
   note: string;
 }
 
+export interface AwardsUI {
+  id: number;
+  artistName: string;
+  date: string;
+  award: string;
+  category: string;
+  result: string;
+  link: string;
+  link2: string;
+  note: string;
+  img: string;
+}
+
 const fixArtistName = (name: string | null | undefined) => {
   if (!name) return "Unknown";
   return name.replace(/TeeteePor/g, "Teetee Por");
@@ -125,6 +139,20 @@ const fixArtistName = (name: string | null | undefined) => {
 export const mapArtistRowToUI = (row: ArtistRow): ArtistUI => ({
   id: row.id,
   name: fixArtistName(row.name),
+});
+
+// awards
+export const mapAwardsRowToUI = (row: WithArtistName<AwardsRow>): AwardsUI => ({
+  id: row.id,
+  artistName: fixArtistName(row.artist?.name),
+  date: row.date ?? "",
+  award: row.award ?? "",
+  category: row.category ?? "",
+  result: row.result ?? "",
+  link: row.link ?? "",
+  link2: row.link2 ?? "",
+  note: row.note ?? "",
+  img: row.img ?? "",
 });
 
 // endorsements

@@ -11,6 +11,7 @@ import PerformancePage from './pages/PerformancePage'
 import MagazinePage from './pages/MagazinePage'
 import BrandEndorsementPage from './pages/BrandEndorsementPage'
 import ContentPage from './pages/ContentPage'
+import AwardsPage from './pages/AwardsPage'
 import FilmographyDetailPage from './pages/FilmographyDetailPage'
 import LoginPage from './pages/LoginPage'
 import AdminDashboard from './admin/pages/AdminDashboard'
@@ -62,6 +63,7 @@ function App() {
             <Route path="/performance" element={<PerformancePage />} />
             <Route path="/magazines" element={<MagazinePage />} />
             <Route path="/endorsements" element={<BrandEndorsementPage />} />
+            <Route path="/awards" element={<AwardsPage />} />
             <Route path="/content" element={<ContentPage />} />
           </Routes>
         </div>

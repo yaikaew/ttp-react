@@ -11,7 +11,8 @@ import {
     ArrowRight,
     Database,
     ExternalLink,
-    ArrowLeft
+    ArrowLeft,
+    Trophy
 } from 'lucide-react';
 
 const tables = [
@@ -23,6 +24,7 @@ const tables = [
     { id: 'magazines', name: 'นิตยสาร (Magazines)', icon: BookOpen, color: 'bg-orange-500', count: '...', description: 'จัดการข้อมูลนิตยสารที่ขึ้นปก' },
     { id: 'endorsements', name: 'แบรนด์ (Endorsements)', icon: Tag, color: 'bg-emerald-500', count: '...', description: 'จัดการรายชื่อแบรนด์ที่เป็นพรีเซนเตอร์' },
     { id: 'contents', name: 'คอนเทนต์ (Contents)', icon: Video, color: 'bg-cyan-500', count: '...', description: 'จัดการวิดีโอและคอนเทนต์ต่าง ๆ' },
+    { id: 'awards', name: 'รางวัล (Awards)', icon: Trophy, color: 'bg-amber-500', count: '...', description: 'จัดการรางวัลและการเสนอชื่อเข้าชิง' },
     { id: 'filmographydetail', name: 'รายละเอียดซีรีส์ (Film Detail)', icon: Database, color: 'bg-slate-700', count: '...', description: 'จัดการข้อมูลเชิงลึก พิกัดเทรน และ Trailer' },
 ];
 

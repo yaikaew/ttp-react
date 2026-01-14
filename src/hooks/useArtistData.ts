@@ -4,6 +4,7 @@ import type { Database } from "../types/supabase";
 
 import {
   mapArtistRowToUI,
+  mapAwardsRowToUI,
   mapEndorsementRowToUI,
   mapContentRowToUI,
   mapMagazinesRowToUI,
@@ -12,6 +13,7 @@ import {
   mapDiscographyRowToUI,
   mapPerformanceRowToUI,
   type ArtistUI,
+  type AwardsUI,
   type EndorsementUI,
   type ContentUI,
   type MagazinesUI,
@@ -27,6 +29,7 @@ import {
 // type ArtistRow =
 //   Database['public']['Tables']['artist']['Row'];
 
+type AwardsRow = Database["public"]["Tables"]["awards"]["Row"];
 type EndorsementRow = Database["public"]["Tables"]["endorsements"]["Row"];
 type ContentRow = Database["public"]["Tables"]["contents"]["Row"];
 type MagazinesRow = Database["public"]["Tables"]["magazines"]["Row"];
@@ -94,6 +97,26 @@ export const useEndorsements = (sortOrder: "asc" | "desc") => {
       if (!data) return [];
 
       return (data as WithArtist<EndorsementRow>[]).map(mapEndorsementRowToUI);
+    },
+  });
+};
+
+/* =======================
+   AWARDS
+======================= */
+export const useAwards = (sortOrder: "asc" | "desc") => {
+  return useQuery<AwardsUI[]>({
+    queryKey: ["awards", sortOrder],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("awards")
+        .select("*, artist:artist_id ( name )")
+        .order("date", { ascending: sortOrder === "asc" });
+
+      if (error) throw error;
+      if (!data) return [];
+
+      return (data as WithArtist<AwardsRow>[]).map(mapAwardsRowToUI);
     },
   });
 };

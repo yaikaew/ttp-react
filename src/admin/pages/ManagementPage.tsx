@@ -57,7 +57,7 @@ const ManagementPage = () => {
                 .select('*, artist:artist_id(name)');
 
             // Explicit list of tables that have a 'date' column for sorting
-            const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents'];
+            const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents', 'awards'];
             const isDateTable = tableName && dateTables.includes(tableName);
 
             if (isDateTable) {
@@ -389,7 +389,7 @@ const ManagementPage = () => {
                         </div>
                         <div className="space-y-2">
                             {(() => {
-                                const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents'];
+                                const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents', 'awards'];
                                 const isDateTable = tableName && dateTables.includes(tableName);
                                 return (
                                     <>
@@ -621,6 +621,19 @@ const ManagementPage = () => {
                                                             <option value="">เลือกประเภทคอนเทนต์</option>
                                                             {['Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Live Event', 'Interview'].map(opt => (
                                                                 <option key={opt} value={opt}>{opt}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                ) : (tableName === 'awards' && key === 'result') ? (
+                                                    <div className="relative group">
+                                                        <select
+                                                            value={String(value ?? '')}
+                                                            onChange={(e) => handleInputChange(key, e.target.value)}
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                        >
+                                                            <option value="">เลือกผลรางวัล</option>
+                                                            {['Nominated', 'Received'].map(opt => (
+                                                                <option key={opt} value={opt}>{opt === 'Nominated' ? '🌟 Nominated (เข้าชิง)' : '🏆 Received (ได้รับ)'}</option>
                                                             ))}
                                                         </select>
                                                     </div>
