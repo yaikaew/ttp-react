@@ -74,6 +74,9 @@ export interface CalendarEventUI {
   location: string;
   note: string;
   type: string;
+  outfit: string;
+  outfit_img: string;
+  dmd: string;
 }
 
 export interface FilmographyUI {
@@ -213,10 +216,12 @@ export const mapCalendarEventRowToUI = (
   tag: row.hashtag ?? "",
   info: row.info_link ?? "",
   link: row.rerun_link ?? "",
-
   location: row.location ?? "",
   note: row.note ?? "",
   type: row.type ?? "",
+  dmd: row.dmd ?? "",
+  outfit: row.outfit ?? "",
+  outfit_img: row.outfit_img ?? "",
 });
 
 export const mapFilmographyRowToUI = (

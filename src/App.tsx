@@ -18,6 +18,7 @@ import AdminDashboard from './admin/pages/AdminDashboard'
 import ManagementPage from './admin/pages/ManagementPage'
 import { useAuth } from './hooks/useAuth'
 import { Navigate } from 'react-router-dom'
+import OutfitsPage from "./pages/OutfitsPage";
 
 // Protected Route for Admin
 const ProtectedAdmin = ({ children }: { children: React.ReactNode }) => {
@@ -57,6 +58,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/calendar-table" element={<CalendarTablePage />} />
+            <Route path="/outfits" element={<OutfitsPage />} />
             <Route path="/filmography" element={<FilmographyPage />} />
             <Route path="/filmography/:id" element={<FilmographyDetailPage />} />
             <Route path="/discography" element={<DiscographyPage />} />
