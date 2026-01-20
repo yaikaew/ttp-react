@@ -2,7 +2,9 @@ import { useState, useMemo } from 'react';
 import { useContents, useArtists } from '../hooks/useArtistData';
 import FilterHeader from '../components/FilterHeader';
 import { getArtistTheme } from '../utils/theme';
-import { SearchX, Calendar, Play } from 'lucide-react';
+import { Calendar, Play } from 'lucide-react';
+import { LoadingState } from "../components/LoadingState";
+import { NoResults } from '../components/NoResults';
 
 const ContentPage = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -41,12 +43,7 @@ const ContentPage = () => {
         return matchArtist && matchType && matchSearch && matchDate;
     }) || [];
 
-    if (isLoading) return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-            <div className="w-10 h-10 border-2 border-indigo-100 border-t-indigo-400 rounded-full animate-spin mb-4"></div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">Loading Archives</p>
-        </div>
-    );
+    if (isLoading) return <LoadingState />;
 
     return (
         <div className="min-h-screen pb-20">
@@ -76,40 +73,36 @@ const ContentPage = () => {
                                     href={item.link}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-100/30 transition-all duration-500 flex flex-col"
+                                    className="group bg-card-bg rounded-3xl overflow-hidden border border-card-border shadow-sm hover:shadow-2xl hover:shadow-brand-primary/20 transition-all duration-500 flex flex-col"
                                 >
-                                    {/* Thumbnail Area */}
-                                    <div className="relative aspect-video overflow-hidden bg-slate-100">
+                                    <div className="relative aspect-video overflow-hidden bg-brand-primary-light">
                                         <img
                                             src={item.img}
                                             alt={item.name}
                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                         />
-                                        {/* Type Badge - Floating */}
-                                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-slate-700 text-[8px] font-black px-2.5 py-1.5 rounded-xl uppercase tracking-widest border border-white shadow-sm">
+                                        <div className="absolute top-3 left-3 bg-card-bg/80 backdrop-blur-md text-content-text-main text-[8px] font-black px-3 py-1.5 rounded-xl uppercase tracking-[0.15em] border border-card-border shadow-md z-10">
                                             {item.type}
                                         </div>
-                                        {/* Play Icon Overlay on Hover */}
-                                        <div className="absolute inset-0 bg-indigo-600/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <div className="bg-white p-3 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">
-                                                <Play size={20} className="text-indigo-600 fill-indigo-600" />
+                                        <div className="absolute inset-0 bg-brand-primary/20 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-[2px]">
+                                            <div className="bg-brand-primary p-4 rounded-full shadow-2xl transform scale-75 group-hover:scale-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500 ease-out">
+                                                <Play size={24} className="text-white fill-white ml-0.5" />
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* Content Info */}
                                     <div className="p-5 flex flex-col grow">
                                         <div className="flex items-center gap-2 mb-3">
-                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
-                                                <Calendar className="w-3 h-3 text-indigo-400" /> {item.date}
+                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-content-text-muted">
+                                                <Calendar size={12} className="text-brand-primary opacity-70" />
+                                                {item.date}
                                             </div>
-                                            <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                                            <div className={`${artistTheme.bg} ${artistTheme.text} text-[9px] font-black px-2.5 py-0.5 rounded-lg border ${artistTheme.border} uppercase tracking-wider`}>
+
+                                            <span className="w-1 h-1 bg-card-border rounded-full" />
+                                            <div className={`${artistTheme.bg} ${artistTheme.text} text-[9px] font-black px-2.5 py-0.5 rounded-lg border ${artistTheme.border} uppercase tracking-widest shadow-sm`}>
                                                 {item.artistName}
                                             </div>
                                         </div>
-
-                                        <h3 className="text-sm font-black text-slate-700 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors min-h-[40px]">
+                                        <h3 className="text-sm font-black text-content-text-main leading-tight line-clamp-2 group-hover:text-brand-primary transition-colors min-h-[40px]">
                                             {item.name}
                                         </h3>
                                     </div>
@@ -118,18 +111,7 @@ const ContentPage = () => {
                         })}
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-40 bg-white/40 backdrop-blur-[2px] rounded-[4rem] border border-dashed border-slate-200 animate-in zoom-in-95 duration-500">
-                        <div className="bg-indigo-50/50 p-8 rounded-full mb-6 ring-8 ring-indigo-50/30">
-                            <SearchX className="w-12 h-12 text-indigo-200" />
-                        </div>
-                        <h3 className="text-slate-800 font-black text-xl tracking-tight">No Results Found</h3>
-                        <p className="text-slate-400 text-xs font-medium italic mt-2 max-w-[240px] text-center leading-relaxed">
-                            We couldn't find anything matching your filters. Try adjusting your search or resetting.
-                        </p>
-                        <button onClick={handleReset} className="mt-8 px-8 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all duration-300 shadow-sm hover:shadow-indigo-100">
-                            Clear all filters
-                        </button>
-                    </div>
+                    <NoResults onReset={handleReset} />
                 )}
             </div>
         </div>

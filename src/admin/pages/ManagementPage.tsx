@@ -98,6 +98,18 @@ const ManagementPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tableName, sortOrder]);
 
+    // Prevent body scroll when drawer is open
+    useEffect(() => {
+        if (isDrawerOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isDrawerOpen]);
+
     const handleDelete = async (e: React.MouseEvent, id: string | number) => {
         e.stopPropagation();
         if (!tableName || !confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้?')) return;

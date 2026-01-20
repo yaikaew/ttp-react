@@ -34,10 +34,10 @@ function App() {
   const isAdminPath = location.pathname.startsWith('/admin');
 
   return (
-    <div className="min-h-screen bg-slate-50 font-baijamjuree">
+    <div className="min-h-screen">
       <ScrollToTop />
       {!isLoginPage && !isAdminPath && <Sidebar />}
-      <main className={`${(isLoginPage || isAdminPath) ? '' : 'lg:ml-64 pt-20 lg:pt-0'} min-h-screen transition-all duration-300`}>
+      <main className={`flex-1 min-h-screen ${!isLoginPage && !isAdminPath ? "bg-brand-bg lg:ml-64 pt-16 lg:pt-0" : "bg-slate-50"}`}>
         <div className={(isLoginPage || isAdminPath) ? '' : 'max-w-7xl mx-auto'}>
           <Routes>
             <Route path="/" element={<HomePage />} />

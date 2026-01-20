@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Clock, MapPin, CalendarPlus, SearchX, ArrowUpDown, User, KeyRound, X, Hash, Video, PlayCircle } from 'lucide-react';
 import FilterHeader from '../components/FilterHeader';
 import { useCalendarEvents, useArtists } from '../hooks/useArtistData';
@@ -9,6 +9,19 @@ const CalendarTablePage = () => {
     // --- States ---
     const [selectedEvent, setSelectedEvent] = useState<CalendarEventUI | null>(null);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+    // --- Effects ---
+    // Prevent background scroll when popup is open
+    useEffect(() => {
+        if (selectedEvent) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [selectedEvent]);
     const [filterArtist, setFilterArtist] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const [startDate, setStartDate] = useState('');

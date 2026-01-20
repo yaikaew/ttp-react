@@ -1,35 +1,124 @@
+/* index.css */
 @import "tailwindcss";
-
 @import url('https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@200;300;400;500;600;700&display=swap');
 
 @theme {
   --font-sans: "Bai Jamjuree", sans-serif;
+  --font-bai: "Bai Jamjuree", sans-serif;
+  --radius-4xl: 2rem;
+
+  --color-brand-primary: #6366f1;
+  --color-brand-primary-light: #eef2ff;
+  --color-brand-primary-hover: #4f46e5;
+  --color-brand-secondary: #7c3aed;
+  --color-brand-accent: #0ea5e9;
+  --color-brand-accent-light: #f0f9ff;
+
+  --color-content-text-main: #1e293b;
+  --color-content-text-sub: #64748b;
+  --color-content-text-muted: #94a3b8;
+  --color-content-text-header: #4338ca;
+
+  --color-brand-sidebar-bg: #ffffff;
+  --color-brand-sidebar-border: #f1f5f9;
+  --color-nav-text: #475569;
+  --color-nav-icon: #94a3b8;
+  --color-nav-bg-hover: #f5f3ff;
+
+  --color-admin-card: #ffffff;
+  --color-admin-border: #e2e8f0;
+
+  --color-filter-bg: #ffffff;
+  --color-filter-border: #e0e7ff;
+  --color-filter-input-bg: #f8fafc;
+  --color-filter-label: #4f46e5;
+  --color-filter-icon: #6366f1;
+  --color-filter-button-idle: #7c3aed;
+
+  --color-page-bg: #f8fafc;
+  --color-card-bg: #ffffff;
+  --color-card-border: #f1f5f9;
+  --color-badge-bg: #e0e7ff;
+  --color-badge-text: #4338ca;
+
+  --color-note-bg: #f5f3ff;
+  --color-note-border: #ddd6fe;
+  --color-note-text: #5b21b6;
 }
 
-/* ลบพวก margin/padding ที่ติดมากับโปรเจกต์ออกให้หมด */
-:root {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ================= DARK MODE (Deep Blue-Purple) ================= */
+html.dark {
+  --color-brand-primary: #818cf8;
+  --color-brand-primary-light: #1e1b4b;
+  --color-brand-primary-hover: #a5b4fc;
+  --color-brand-secondary: #a78bfa;
+  --color-brand-accent: #38bdf8;
+  --color-brand-accent-light: #0c4a6e;
+
+  --color-content-text-main: #f1f5f9;
+  --color-content-text-sub: #94a3b8;
+  --color-content-text-muted: #64748b;
+  --color-content-text-header: #c7d2fe;
+
+  --color-brand-sidebar-bg: #0f172a;
+  --color-brand-sidebar-border: #1e293b;
+  --color-nav-text: #cbd5e1;
+  --color-nav-icon: #64748b;
+  --color-nav-bg-hover: #1e1b4b;
+
+  --color-admin-card: #1e293b;
+  --color-admin-border: #334155;
+
+  --color-filter-bg: #1e293b;
+  --color-filter-border: #312e81;
+  --color-filter-input-bg: #0f172a;
+  --color-filter-label: #a5b4fc;
+  --color-filter-icon: #818cf8;
+  --color-filter-button-idle: #8b5cf6;
+
+  --color-page-bg: #020617;
+  --color-card-bg: #0f172a;
+  --color-card-border: #1e293b;
+  --color-badge-bg: #1e1b4b;
+  --color-badge-text: #c7d2fe;
+
+  --color-note-bg: #2e1065;
+  --color-note-border: #4c1d95;
+  --color-note-text: #ddd6fe;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4rem;
 }
 
 body {
-  margin: 0;
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-bai);
+  background: var(--color-page-bg);
+  color: var(--color-content-text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
+.label-meta {
+  @apply text-[10px] font-black uppercase tracking-widest text-content-text-muted mb-0.5;
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 1;
   }
 
-  to {
-    transform: rotate(360deg);
+  50% {
+    opacity: 0.5;
   }
 }
 
-.animate-spin-slow {
-  animation: spin-slow 8s linear infinite;
+.animate-pulse-soft {
+  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.group {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }

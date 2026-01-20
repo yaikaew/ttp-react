@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { usePerformance, useArtists } from '../hooks/useArtistData';
 import FilterHeader from '../components/FilterHeader';
 import { getArtistTheme, getTypeTheme } from '../utils/theme';
-import { SearchX } from 'lucide-react';
+import { LoadingState } from "../components/LoadingState";
+import { NoResults } from '../components/NoResults';
 
 const PerformancePage = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -41,12 +42,7 @@ const PerformancePage = () => {
         return matchArtist && matchType && matchSearch && matchDate;
     }) || [];
 
-    if (isLoading) return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
-            <div className="w-10 h-10 border-2 border-indigo-100 border-t-indigo-400 rounded-full animate-spin mb-4"></div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">Loading Archives</p>
-        </div>
-    );
+    if (isLoading) return <LoadingState />;
 
     return (
         <div className="min-h-screen pb-20">
@@ -77,57 +73,52 @@ const PerformancePage = () => {
                                     href={item.link}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="group bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-100/30 transition-all duration-500 flex flex-col"
+                                    className="group bg-card-bg rounded-3xl border border-card-border overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand-primary/10 hover:-translate-y-1.5 transition-all duration-500 flex flex-col"
                                 >
-                                    <div className="aspect-video bg-slate-100 overflow-hidden">
+                                    <div className="aspect-video bg-brand-primary-light overflow-hidden relative">
                                         <img
                                             src={item.img || 'https://via.placeholder.com/300'}
                                             alt={item.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition"
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                         />
+                                        {/* Overlay จางๆ ตอน Hover */}
+                                        <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                     </div>
 
-                                    <div className="p-4 space-y-2">
-                                        {/* Badges */}
-                                        <div className="flex flex-wrap gap-2 text-[10px]">
-                                            <span className={`${artistTheme.bg} ${artistTheme.text} px-2 py-0.5 rounded border ${artistTheme.border} uppercase`}>
+                                    <div className="p-5 flex-1 flex flex-col space-y-3">
+                                        {/* Badges & Year */}
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className={`${artistTheme.bg} ${artistTheme.text} px-2.5 py-0.5 rounded-lg border ${artistTheme.border} text-[9px] font-black uppercase tracking-wider shadow-sm`}>
                                                 {item.artistName}
                                             </span>
-                                            <span className={`${typeTheme.bg} ${typeTheme.text} px-2 py-0.5 rounded border ${typeTheme.border} uppercase`}>
+                                            <span className={`${typeTheme.bg} ${typeTheme.text} px-2.5 py-0.5 rounded-lg border ${typeTheme.border} text-[9px] font-black uppercase tracking-wider`}>
                                                 {item.type}
                                             </span>
-                                            <span className="text-slate-400 ml-auto">
+                                            <span className="text-[10px] font-bold text-content-text-muted ml-auto flex items-center gap-1">
+                                                <span className="w-1 h-1 bg-brand-primary rounded-full animate-pulse" />
                                                 {new Date(item.date).getFullYear()}
                                             </span>
                                         </div>
 
-                                        <h3 className="text-sm font-semibold text-slate-700 line-clamp-2">
-                                            {item.title}
-                                        </h3>
+                                        {/* Content */}
+                                        <div className="space-y-1.5 flex-1">
+                                            <h3 className="text-[15px] font-black text-content-text-main line-clamp-2 leading-tight group-hover:text-brand-primary transition-colors">
+                                                {item.title}
+                                            </h3>
 
-                                        {item.note && (
-                                            <p className="text-xs text-slate-400 line-clamp-1">
-                                                {item.note}
-                                            </p>
-                                        )}
+                                            {item.note && (
+                                                <p className="text-xs text-content-text-muted line-clamp-1">
+                                                    {item.note}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </a>
                             );
                         })}
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-40 bg-white/40 backdrop-blur-[2px] rounded-[4rem] border border-dashed border-slate-200 animate-in zoom-in-95 duration-500">
-                        <div className="bg-indigo-50/50 p-8 rounded-full mb-6 ring-8 ring-indigo-50/30">
-                            <SearchX className="w-12 h-12 text-indigo-200" />
-                        </div>
-                        <h3 className="text-slate-800 font-black text-xl tracking-tight">No Results Found</h3>
-                        <p className="text-slate-400 text-xs font-medium italic mt-2 max-w-[240px] text-center leading-relaxed">
-                            We couldn't find anything matching your filters. Try adjusting your search or resetting.
-                        </p>
-                        <button onClick={handleReset} className="mt-8 px-8 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all duration-300 shadow-sm hover:shadow-indigo-100">
-                            Clear all filters
-                        </button>
-                    </div>
+                    <NoResults onReset={handleReset} />
                 )}
             </div>
         </div>
