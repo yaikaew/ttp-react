@@ -1,15 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import {
-    ArrowLeft,
-    Play,
-    Youtube,
-    TrendingUp,
-    Info,
-    Film,
-    Sparkles
-} from 'lucide-react';
+import { ArrowLeft, Play, Youtube, TrendingUp, Film, Star, BookOpen, Clapperboard, Tv } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { type FilmographyUI } from '../utils/mappers';
 import { LoadingState } from "../components/LoadingState";
 
@@ -24,7 +17,72 @@ interface FilmographyDetail {
     highlight_link: string;
     [key: string]: string | number;
 }
+/* -------------------- Section Header -------------------- */
+const SectionHeader = ({
+    icon: Icon,
+    title,
+    subtitle,
+}: {
+    icon: LucideIcon;
+    title: string;
+    subtitle?: string;
+}) => (
+    <div className="flex items-start gap-4 mb-6 group">
+        <div className="p-3 bg-brand-primary-light border border-brand-accent-light rounded-2xl text-brand-primary shadow-sm transition-transform group-hover:scale-105">
+            <Icon className="w-5 h-5" />
+        </div>
+        <div>
+            <h4 className="text-base font-black text-content-text-main leading-none">
+                {title}
+            </h4>
+            {subtitle && (
+                <p className="text-[11px] font-bold text-content-text-muted mt-1.5 leading-relaxed uppercase tracking-wider">
+                    {subtitle}
+                </p>
+            )}
+        </div>
+    </div>
+);
+/* -------------------- Video Grid -------------------- */
+const VideoGrid = ({
+    ids,
+    title,
+    icon,
+}: {
+    ids: string[];
+    title: string;
+    icon: LucideIcon;
+}) => {
+    if (ids.length === 0) return null;
 
+    return (
+        <div>
+            <SectionHeader
+                icon={icon}
+                title={title}
+                subtitle={`${ids.length} clips available`}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {ids.map((id, index) => (
+                    <div key={`${title}-${id}`} className="relative group">
+                        <div className="aspect-video rounded-3xl overflow-hidden bg-content-text-main shadow-lg shadow-brand-primary/5 border border-brand-sidebar-border group-hover:border-brand-primary-light transition-all duration-500">
+                            <iframe
+                                className="w-full h-full opacity-85 group-hover:opacity-100 transition-opacity duration-500"
+                                src={`https://www.youtube.com/embed/${id}?modestbranding=1&rel=0`}
+                                title={`${title} ${index + 1}`}
+                                allowFullScreen
+                                loading="lazy"
+                            />
+                        </div>
+                        <div className="absolute -bottom-3 -right-2 w-8 h-8 bg-card-bg text-[10px] font-black rounded-xl flex items-center justify-center text-brand-primary shadow-lg border border-brand-primary-light transition-transform group-hover:scale-110 group-hover:rotate-6">
+                            {String(index + 1).padStart(2, '0')}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
 const FilmographyDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -115,6 +173,12 @@ const FilmographyDetailPage = () => {
         }
     }
 
+    const parseIds = (input?: string | null) =>
+        input ? input.split(',').map((v) => v.trim()).filter(Boolean) : [];
+
+    const btsIds = parseIds(detail?.bts_link);
+    const highlightIds = parseIds(detail?.highlight_link);
+
     // Helper to extract YouTube ID if a full URL was provided
     const getYoutubeEmbedUrl = (idOrUrl: string) => {
         if (!idOrUrl) return '';
@@ -125,7 +189,7 @@ const FilmographyDetailPage = () => {
     };
 
     return (
-        <div className="min-h-screen pb-32">
+        <div className="max-w-7xl mx-auto pb-20">
             {/* Header Area */}
             <div className="border-b border-card-border">
                 <div className="max-w-7xl mx-auto px-6 py-12">
@@ -181,7 +245,7 @@ const FilmographyDetailPage = () => {
                                         href={`https://x.com/search?q=${encodeURIComponent(detail.hashtag)}`}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="px-4 py-2 bg-surface-soft border border-card-border text-brand-primary rounded-xl font-black text-sm"
+                                        className="flex items-center px-5 py-3 bg-card-bg border border-brand-primary-light text-brand-primary rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-brand-primary hover:text-white transition-all duration-300 shadow-sm"
                                     >
                                         {detail.hashtag}
                                     </a>
@@ -198,205 +262,100 @@ const FilmographyDetailPage = () => {
                                         Watch Rerun
                                     </a>
                                 )}
-
-                                {film.rerun_link2 && (
-                                    <a
-                                        href={film.rerun_link2}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex items-center gap-2 px-6 py-2 bg-accent-warning text-white rounded-xl font-black text-sm shadow-lg shadow-accent-warning/25 hover:bg-accent-warning-hover transition-all active:scale-95"
-                                    >
-                                        <Play size={14} fill="currentColor" />
-                                        Watch Rerun
-                                    </a>
-                                )}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-
-            <div className="max-w-7xl mx-auto px-6 py-12 relative z-20">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column: Details */}
-                    <div className="lg:col-span-2 space-y-10">
-
-                        {/* Trailer Section */}
-                        {detail?.trailerid && (
-                            <section className="bg-card-bg rounded-4xl p-6 md:p-10 border border-card-border shadow-xl shadow-card-shadow/50">
-                                <div className="flex items-center gap-3 mb-8">
-                                    <div className="w-10 h-10 bg-brand-primary text-content-text-main rounded-2xl flex items-center justify-center">
-                                        <Youtube size={24} />
-                                    </div>
-                                    <h2 className="text-2xl font-black text-content-text-main">Official Trailer</h2>
-                                </div>
-                                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-black border border-card-border">
-                                    <iframe
-                                        className="w-full h-full"
-                                        src={getYoutubeEmbedUrl(detail.trailerid)}
-                                        title="Trailer"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    ></iframe>
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Synopsis */}
-                        <section className="bg-card-bg rounded-4xl p-10 border border-card-border shadow-xl shadow-card-shadow/50">
-                            <div className="flex items-center gap-3 mb-6 font-bold text-content-text-muted">
-                                <Info size={18} />
-                                <span className="uppercase text-[10px] tracking-widest">About this Work</span>
-                            </div>
-                            <h2 className="text-2xl font-black text-content-text-main mb-6">เรื่องย่อ (Synopsis)</h2>
-                            <p className="text-lg text-content-text-muted leading-relaxed font-medium">
-                                {film.synopsis || "Coming soon..."}
-                            </p>
-                        </section>
-
-                        {/* Multi Video Sections (BTS & Highlights) */}
-                        <div className="space-y-12">
-                            {/* BTS Videos */}
-                            {detail?.bts_link && (
-                                <section className="space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                                                <Film size={20} />
-                                            </div>
-                                            <div>
-                                                <h2 className="text-2xl font-black text-content-text-main tracking-tight">Behind The Scenes</h2>
-                                                <p className="text-[10px] font-bold text-content-text-muted uppercase tracking-[0.2em]">Exclusive Footage</p>
-                                            </div>
-                                        </div>
-                                        <div className="hidden md:flex gap-2 text-[10px] font-black text-content-text-muted uppercase">
-                                            <span>Scroll to explore</span>
-                                            <div className="w-4 h-4 rounded-full border border-card-border flex items-center justify-center animate-pulse">→</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 overflow-x-auto pb-6 -mx-2 px-2 scrollbar-none snap-x snap-mandatory lg:gap-6">
-                                        {detail.bts_link.split(',').map((id, index) => (
-                                            <div key={index} className="flex-none w-[280px] md:w-[360px] snap-start">
-                                                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl bg-black border-2 border-white group hover:border-indigo-600 transition-all duration-500">
-                                                    <iframe
-                                                        className="w-full h-full"
-                                                        src={getYoutubeEmbedUrl(id.trim())}
-                                                        title={`BTS ${index + 1}`}
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                        allowFullScreen
-                                                    ></iframe>
-                                                </div>
-                                                <p className="mt-3 text-[10px] font-black text-content-text-muted uppercase tracking-widest pl-2">Part {index + 1}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
-
-                            {/* Highlight Videos */}
-                            {detail?.highlight_link && (
-                                <section className="space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-amber-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-amber-200">
-                                                <Sparkles size={20} />
-                                            </div>
-                                            <div>
-                                                <h2 className="text-2xl font-black text-content-text-main tracking-tight">Highlights</h2>
-                                                <p className="text-[10px] font-bold text-content-text-muted uppercase tracking-[0.2em]">Best Moments</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-4 overflow-x-auto pb-6 -mx-2 px-2 scrollbar-none snap-x snap-mandatory lg:gap-6">
-                                        {detail.highlight_link.split(',').map((id, index) => (
-                                            <div key={index} className="flex-none w-[280px] md:w-[360px] snap-start">
-                                                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-xl bg-black border-2 border-white group hover:border-amber-500 transition-all duration-500">
-                                                    <iframe
-                                                        className="w-full h-full"
-                                                        src={getYoutubeEmbedUrl(id.trim())}
-                                                        title={`Highlight ${index + 1}`}
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                        allowFullScreen
-                                                    ></iframe>
-                                                </div>
-                                                <p className="mt-3 text-[10px] font-black text-content-text-muted uppercase tracking-widest pl-2">Moment {index + 1}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
+            {/* Trailer + Actors */}
+            <div className="px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
+                {detail?.trailerid && (
+                    <div className="lg:col-span-2">
+                        <SectionHeader icon={Youtube} title="Official Trailer" subtitle="Watch the official trailer" />
+                        <div className="aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl border-4 border-card-bg">
+                            <iframe className="w-full h-full" src={getYoutubeEmbedUrl(detail.trailerid)} allowFullScreen />
                         </div>
                     </div>
-
-                    {/* Right Column: Characters & Trends */}
-                    <div className="space-y-8">
-                        {/* Character Cards */}
-                        <div className="bg-card-bg rounded-4xl p-8 border border-card-border shadow-xl shadow-card-shadow/50">
-                            <h3 className="text-xl font-black text-content-text-main mb-8 border-b border-card-border pb-4">
-                                {film.status.toLowerCase().includes('support') ? 'Support Characters' : 'Main Characters'}
-                            </h3>
-
-                            <div className="space-y-8">
-                                <div className="flex items-center gap-5 group">
-                                    <div className="w-20 h-20 rounded-3xl overflow-hidden border-2 border-card-border shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                                        <img src={detail?.teeteeimg || film.poster} alt="Teetee" className="w-full h-full object-cover" />
-                                    </div>
-                                    <div>
-                                        <span className="text-[10px] font-black text-brand-primary uppercase tracking-widest block mb-1">Teetee</span>
-                                        <h4 className="text-lg font-black text-content-text-main">{film.role_teetee}</h4>
-                                    </div>
+                )}
+                <div>
+                    <SectionHeader icon={Star} title="Main Characters" subtitle="Meet the actors" />
+                    <div className="space-y-4">
+                        {[
+                            { name: 'Teetee', role: film.role_teetee, img: detail?.teeteeimg },
+                            { name: 'Por', role: film.role_por, img: detail?.porimg }
+                        ].map((actor, idx) => (
+                            <div key={idx} className="flex gap-4 p-4 bg-card-bg rounded-3xl border border-card-border hover:border-brand-primary/30 transition-colors shadow-sm group">
+                                <div className="relative w-20 h-20 shrink-0">
+                                    <img src={actor.img || film.poster} className="w-full h-full rounded-2xl object-cover border border-brand-primary-light" alt={actor.name} />
                                 </div>
-
-                                <div className="flex items-center gap-5 group">
-                                    <div className="w-20 h-20 rounded-3xl overflow-hidden border-2 border-card-border shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                                        <img src={detail?.porimg || film.poster} alt="Por" className="w-full h-full object-cover" />
-                                    </div>
-                                    <div>
-                                        <span className="text-[10px] font-black text-brand-primary uppercase tracking-widest block mb-1">Por</span>
-                                        <h4 className="text-lg font-black text-content-text-main">{film.role_por}</h4>
-                                    </div>
+                                <div className="flex flex-col justify-center">
+                                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-primary mb-1">{actor.name}</span>
+                                    <p className="text-sm font-bold text-content-text-main">as <span className="text-brand-accent">{actor.role}</span></p>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Trend Summary */}
-                        {trendTags.length > 0 && (
-                            <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
-                                <TrendingUp className="absolute -top-6 -right-6 text-white/5 w-32 h-32 -rotate-12" />
-                                <div className="relative z-10 flex items-center gap-3 mb-6">
-                                    <div className="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center">
-                                        <TrendingUp size={20} />
-                                    </div>
-                                    <h3 className="text-xl font-black text-white">Trend Summary</h3>
-                                </div>
-                                <div className="relative z-10 space-y-3">
-                                    {trendTags.map((item, idx) => (
-                                        <a
-                                            key={idx}
-                                            href={item.link}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="block p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all group"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest block mb-1">{item.label}</span>
-                                                    <span className="text-slate-200 font-bold group-hover:text-white transition-colors">{item.tag}</span>
-                                                </div>
-                                                <div className="flex flex-col items-end gap-1">
-                                                    <span className="font-black text-indigo-400 group-hover:text-indigo-300 transition-colors">
-                                                        {item.engage}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        ))}
                     </div>
                 </div>
+            </div>
+
+            {/* Story */}
+            <div className="px-6 py-12">
+                <div className="relative">
+                    <SectionHeader icon={BookOpen} title="The Story" subtitle="Synopsis" />
+                    <div className="relative overflow-hidden bg-card-bg p-8 md:p-12 rounded-[2.5rem] border border-card-border shadow-sm">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                        <p className="relative text-sm md:text-lg text-content-text-sub leading-relaxed whitespace-pre-line font-medium">
+                            {film.synopsis || "Coming soon..."}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Trend Summary */}
+            {trendTags.length > 0 && (
+                <div className="px-6 py-12">
+                    <div className="relative">
+                        <SectionHeader icon={TrendingUp} title="Trend Summary" subtitle="X Engagement Metrics" />
+                        <div className="relative overflow-hidden bg-card-bg p-8 md:p-12 rounded-[2.5rem] border border-card-border shadow-sm">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                {trendTags.map((item, idx) => (
+                                    <a
+                                        key={idx}
+                                        href={item.link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="group block p-5 bg-page-bg border border-card-border rounded-3xl hover:border-brand-primary/40 transition-all duration-300 shadow-xs"
+                                    >
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="min-w-0">
+                                                <span className="text-[9px] font-black text-content-text-muted uppercase tracking-widest block mb-1.5 group-hover:text-brand-primary transition-colors">
+                                                    {item.label}
+                                                </span>
+                                                <span className="text-content-text-main font-bold truncate block group-hover:text-brand-primary transition-colors">
+                                                    {item.tag}
+                                                </span>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <span className="text-[8px] font-bold text-content-text-muted uppercase block mb-1">Engage</span>
+                                                <span className="text-lg font-black text-brand-primary">
+                                                    {item.engage}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Videos (BTS & Highlights) */}
+            <div className="px-6 py-12 space-y-20">
+                <VideoGrid ids={btsIds} title="Behind The Scenes" icon={Clapperboard} />
+                <VideoGrid ids={highlightIds} title="Highlights" icon={Tv} />
             </div>
         </div>
     );

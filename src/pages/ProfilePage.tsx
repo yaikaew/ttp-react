@@ -147,23 +147,6 @@ const ProfilePage: React.FC = () => {
                                     </a>
                                 </div>
                             </div>
-
-                            {/* Sticker */}
-                            <div className="
-                                absolute -top-4 -right-2
-                                bg-brand-accent
-                                text-white
-                                px-4 py-1.5
-                                rounded-full
-                                rotate-12
-                                shadow-lg
-                                font-black
-                                text-xs
-                                border
-                                border-white
-                            ">
-                                IDOL
-                            </div>
                         </div>
                     ))}
                 </div>
