@@ -36,19 +36,21 @@ const sizes: Record<ButtonSize, string> = {
 const variants: Record<ButtonVariant, string> = {
     primary: `
         bg-gradient-to-r from-brand-primary to-brand-accent 
-        text-white border border-brand-primary/20
-        shadow-[0_4px_14px_0_rgba(220,38,38,0.39)] 
-        hover:shadow-[0_6px_20px_rgba(220,38,38,0.23)]
-        hover:opacity-90 hover:-translate-y-0.5
+        text-white border border-white/10
+        shadow-[0_4px_14px_0_rgba(99,102,241,0.4)] 
+        hover:shadow-[0_6px_20px_rgba(99,102,241,0.3)]
+        hover:opacity-95 hover:-translate-y-0.5
+        dark:from-brand-primary dark:to-brand-secondary
     `,
     secondary: `
-        bg-brand-primary-light/50 backdrop-blur-sm
-        border border-brand-accent/20
+        bg-brand-primary-light/80 backdrop-blur-sm
+        border border-brand-primary/10
         text-brand-primary
         hover:bg-brand-primary
         hover:text-white
         hover:shadow-lg hover:shadow-brand-primary/20
-        dark:bg-brand-primary-light/10 dark:text-brand-accent
+        dark:bg-brand-primary-light/5 dark:text-brand-primary dark:border-brand-primary/20
+        dark:hover:bg-brand-primary dark:hover:text-white
     `,
 };
 
@@ -59,7 +61,14 @@ export function Button(props: ButtonProps) {
 
     const content = (
         <>
-            {Icon && <Icon className={size === 'lg' ? 'w-5 h-5' : 'w-3.5 h-3.5'} />}
+            {Icon && (
+                <Icon
+                    className={clsx(
+                        size === 'lg' ? 'w-5 h-5' : 'w-3.5 h-3.5',
+                        "transition-transform group-hover:scale-110"
+                    )}
+                />
+            )}
             <span>{children}</span>
         </>
     );

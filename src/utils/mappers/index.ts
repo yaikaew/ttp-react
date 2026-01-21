@@ -131,7 +131,7 @@ export interface AwardsUI {
 
 const fixArtistName = (name: string | null | undefined) => {
   if (!name) return "Unknown";
-  return name.replace(/TeeteePor/g, "Teetee Por");
+  return name.replace(/TeeteePor/g, "TeeteePor");
 };
 
 /* =======================
@@ -160,7 +160,7 @@ export const mapAwardsRowToUI = (row: WithArtistName<AwardsRow>): AwardsUI => ({
 
 // endorsements
 export const mapEndorsementRowToUI = (
-  row: WithArtistName<EndorsementRow>
+  row: WithArtistName<EndorsementRow>,
 ): EndorsementUI => ({
   id: row.id,
   name: row.name ?? "",
@@ -174,7 +174,7 @@ export const mapEndorsementRowToUI = (
 
 // contents
 export const mapContentRowToUI = (
-  row: WithArtistName<ContentRow>
+  row: WithArtistName<ContentRow>,
 ): ContentUI => ({
   id: row.id,
   name: row.name ?? "",
@@ -187,7 +187,7 @@ export const mapContentRowToUI = (
 
 // magazines
 export const mapMagazinesRowToUI = (
-  row: WithArtistName<MagazinesRow>
+  row: WithArtistName<MagazinesRow>,
 ): MagazinesUI => ({
   id: row.id,
   artistName: fixArtistName(row.artist?.name),
@@ -201,7 +201,7 @@ export const mapMagazinesRowToUI = (
 
 // calendar events
 export const mapCalendarEventRowToUI = (
-  row: WithArtistName<CalendarEventRow>
+  row: WithArtistName<CalendarEventRow>,
 ): CalendarEventUI => ({
   id: row.id,
   name: row.name ?? "",
@@ -225,7 +225,7 @@ export const mapCalendarEventRowToUI = (
 });
 
 export const mapFilmographyRowToUI = (
-  row: WithArtistName<FilmographyRow>
+  row: WithArtistName<FilmographyRow>,
 ): FilmographyUI => ({
   id: row.id,
   title: row.title ?? "",
@@ -242,7 +242,7 @@ export const mapFilmographyRowToUI = (
 });
 
 export const mapDiscographyRowToUI = (
-  row: WithArtistName<DiscographyRow>
+  row: WithArtistName<DiscographyRow>,
 ): DiscographyUI => ({
   id: row.id,
   artistName: fixArtistName(row.artist?.name),
@@ -255,7 +255,7 @@ export const mapDiscographyRowToUI = (
 });
 
 export const mapPerformanceRowToUI = (
-  row: WithArtistName<PerformanceRow>
+  row: WithArtistName<PerformanceRow>,
 ): PerformanceUI => ({
   id: row.id,
   artistName: fixArtistName(row.artist?.name),
