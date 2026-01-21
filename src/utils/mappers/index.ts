@@ -82,16 +82,13 @@ export interface CalendarEventUI {
 export interface FilmographyUI {
   id: number;
   artistName: string;
-  title: string;
   date: string;
-  poster: string;
-  status: string;
-  note: string;
-  synopsis: string;
-  rerun_link1: string;
-  rerun_link2: string;
+  title: string;
   role_teetee: string;
   role_por: string;
+  status: string;
+  poster: string;
+  rerun_link: string;
 }
 
 export interface DiscographyUI {
@@ -233,12 +230,9 @@ export const mapFilmographyRowToUI = (
   role_teetee: row.role_teetee ?? "",
   role_por: row.role_por ?? "",
   status: row.status ?? "",
-  synopsis: row.synopsis ?? "",
   poster: row.poster ?? "",
   artistName: fixArtistName(row.artist?.name),
-  note: row.note ?? "",
-  rerun_link1: row.rerun_link1 ?? "",
-  rerun_link2: row.rerun_link2 ?? "",
+  rerun_link: row.rerun_link ?? "",
 });
 
 export const mapDiscographyRowToUI = (

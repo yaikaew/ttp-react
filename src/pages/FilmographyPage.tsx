@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Tv, CirclePlay, Layout } from 'lucide-react';
+import { CirclePlay, Layout } from 'lucide-react';
 import FilterHeader from '../components/FilterHeader';
 import { useFilmography, useArtists } from '../hooks/useArtistData';
 import { LoadingState } from "../components/LoadingState";
@@ -88,10 +88,6 @@ const FilmographyPage = () => {
                                             <span className="text-[9px] font-bold text-content-text-muted uppercase tracking-widest">
                                                 {new Date(item.date).getFullYear()}
                                             </span>
-                                            <div className="flex items-center gap-1 text-content-text-muted">
-                                                <Tv size={10} />
-                                                <span className="text-[8px] font-medium uppercase tracking-tighter">{item.note || 'series'}</span>
-                                            </div>
                                         </div>
 
                                         <h3 className="text-base font-bold text-content-text-main leading-snug mb-4 group-hover:text-brand-primary transition-colors line-clamp-2 min-h-10">
@@ -123,7 +119,7 @@ const FilmographyPage = () => {
                                             </Button>
                                             <Button
                                                 variant="primary"
-                                                href={item.rerun_link1}
+                                                href={item.rerun_link}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 size="sm"

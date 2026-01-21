@@ -26,6 +26,7 @@ const tables = [
     { id: 'contents', name: 'คอนเทนต์ (Contents)', icon: Video, color: 'bg-cyan-500', count: '...', description: 'จัดการวิดีโอและคอนเทนต์ต่าง ๆ' },
     { id: 'awards', name: 'รางวัล (Awards)', icon: Trophy, color: 'bg-amber-500', count: '...', description: 'จัดการรางวัลและการเสนอชื่อเข้าชิง' },
     { id: 'filmographydetail', name: 'รายละเอียดซีรีส์ (Film Detail)', icon: Database, color: 'bg-slate-700', count: '...', description: 'จัดการข้อมูลเชิงลึก พิกัดเทรน และ Trailer' },
+    { id: 'filmographytrends', name: 'เทรนด์ (Trends)', icon: Database, color: 'bg-slate-700', count: '...', description: 'จัดการข้อมูลเชิงลึก เทรน' },
 ];
 
 const AdminDashboard = () => {

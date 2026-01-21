@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { ArrowLeft, Play, Youtube, TrendingUp, Film, Star, BookOpen, Clapperboard, Tv } from 'lucide-react';
+import { ArrowLeft, Play, Youtube, Film, Star, BookOpen, Clapperboard, Tv, TrendingUp } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { type FilmographyUI } from '../utils/mappers';
 import { LoadingState } from "../components/LoadingState";
@@ -10,12 +10,24 @@ interface FilmographyDetail {
     id: number;
     filmography_id: number;
     hashtag: string;
-    teeteeimg: string;
-    porimg: string;
-    trailerid: string;
-    bts_link: string;
-    highlight_link: string;
-    [key: string]: string | number;
+    teetee_img: string;
+    por_img: string;
+    trailer_id: string;
+    bts_id: string;
+    highlight_id: string;
+    synopsis: string;
+}
+interface Filmographytrends {
+    id: number;
+    filmography_id: number;
+    episode: string;
+    air_date: string;
+    hashtag: string;
+    posts: string;
+    rank_th: string;
+    rank_ww: string;
+    location_count: string;
+    source_link: string;
 }
 /* -------------------- Section Header -------------------- */
 const SectionHeader = ({
@@ -88,6 +100,7 @@ const FilmographyDetailPage = () => {
     const navigate = useNavigate();
     const [film, setFilm] = useState<FilmographyUI | null>(null);
     const [detail, setDetail] = useState<FilmographyDetail | null>(null);
+    const [trends, setTrends] = useState<Filmographytrends[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -95,25 +108,32 @@ const FilmographyDetailPage = () => {
             if (!id) return;
             setLoading(true);
             try {
-                // Fetch main filmography info
+                // 1. Fetch main filmography info
                 const { data: filmData, error: filmError } = await supabase
                     .from('filmography')
                     .select('*')
                     .eq('id', id)
                     .single();
-
                 if (filmError) throw filmError;
                 setFilm(filmData);
 
-                // Fetch deep detail
+                // 2. Fetch deep detail
                 const { data: detailData, error: detailError } = await supabase
                     .from('filmographydetail')
                     .select('*')
                     .eq('filmography_id', id)
                     .maybeSingle();
-
                 if (detailError) throw detailError;
                 setDetail(detailData);
+
+                const { data: trendsData, error: trendsError } = await supabase
+                    .from('filmographytrends')
+                    .select('*')
+                    .eq('filmography_id', id)
+                    .order('episode', { ascending: true });
+
+                if (trendsError) throw trendsError;
+                setTrends(trendsData);
             } catch (err) {
                 console.error('Error fetching film details:', err);
             } finally {
@@ -142,42 +162,11 @@ const FilmographyDetailPage = () => {
         </div>
     );
 
-    // Extract trend tags from detail
-    const trendTags = [];
-    if (detail) {
-        // Add Trailer Tag first if it exists
-        if (detail.tagtrailer) {
-            const trailerHashtagLink = `${String(detail.linktrailer)}`;
-            trendTags.push({
-                label: "Official Trailer",
-                tag: String(detail.tagtrailer),
-                engage: String(detail.engagetrailer || '-'),
-                link: trailerHashtagLink
-            });
-        }
-
-        // Add Episode Tags
-        for (let i = 1; i <= 12; i++) {
-            const tag = detail[`tag${i}`];
-            const engage = detail[`engage${i}`];
-            const link = detail[`link${i}`];
-            if (tag) {
-                const hashtagLink = link ? String(link) : `https://x.com/hashtag/${String(tag).replace('#', '')}?src=hashtag_click`;
-                trendTags.push({
-                    label: `Episode ${i}`,
-                    tag: String(tag),
-                    engage: String(engage || '-'),
-                    link: hashtagLink
-                });
-            }
-        }
-    }
-
     const parseIds = (input?: string | null) =>
         input ? input.split(',').map((v) => v.trim()).filter(Boolean) : [];
 
-    const btsIds = parseIds(detail?.bts_link);
-    const highlightIds = parseIds(detail?.highlight_link);
+    const btsIds = parseIds(detail?.bts_id);
+    const highlightIds = parseIds(detail?.highlight_id);
 
     // Helper to extract YouTube ID if a full URL was provided
     const getYoutubeEmbedUrl = (idOrUrl: string) => {
@@ -228,7 +217,7 @@ const FilmographyDetailPage = () => {
                                 </span>
 
                                 <span className="text-sm font-bold text-content-text-muted">
-                                    {new Date(film.date).getFullYear()} • {film.note || 'TV Series'}
+                                    {new Date(film.date).getFullYear()}
                                 </span>
                             </div>
 
@@ -251,9 +240,9 @@ const FilmographyDetailPage = () => {
                                     </a>
                                 )}
 
-                                {film.rerun_link1 && (
+                                {film.rerun_link && (
                                     <a
-                                        href={film.rerun_link1}
+                                        href={film.rerun_link}
                                         target="_blank"
                                         rel="noreferrer"
                                         className="inline-flex items-center gap-2 px-6 py-2 bg-brand-primary text-white rounded-xl font-black text-sm shadow-lg shadow-brand-primary/25 hover:bg-brand-primary-hover transition-all active:scale-95"
@@ -268,30 +257,47 @@ const FilmographyDetailPage = () => {
                 </div>
             </div>
 
-            {/* Trailer + Actors */}
-            <div className="px-6 py-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
-                {detail?.trailerid && (
-                    <div className="lg:col-span-2">
-                        <SectionHeader icon={Youtube} title="Official Trailer" subtitle="Watch the official trailer" />
-                        <div className="aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl border-4 border-card-bg">
-                            <iframe className="w-full h-full" src={getYoutubeEmbedUrl(detail.trailerid)} allowFullScreen />
-                        </div>
+            {/* Trailer */}
+            {detail?.trailer_id && (
+                <div className="px-6 py-12">
+                    <SectionHeader icon={Youtube} title="Official Trailer" subtitle="Watch the official trailer" />
+                    <div className="aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl border-4 border-card-bg">
+                        <iframe className="w-full h-full" src={getYoutubeEmbedUrl(detail.trailer_id)} allowFullScreen />
                     </div>
-                )}
+                </div>
+            )}
+
+            {/* Actors */}
+            <div className="px-6 py-12">
                 <div>
                     <SectionHeader icon={Star} title="Main Characters" subtitle="Meet the actors" />
-                    <div className="space-y-4">
+                    {/* ปรับ grid ให้ดูโปร่งขึ้น และใช้ gap ที่เหมาะสม */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 mt-8">
                         {[
-                            { name: 'Teetee', role: film.role_teetee, img: detail?.teeteeimg },
-                            { name: 'Por', role: film.role_por, img: detail?.porimg }
+                            { name: 'Teetee Wanpichit', role: film.role_teetee, img: detail?.teetee_img },
+                            { name: 'Por Suppakarn', role: film.role_por, img: detail?.por_img }
                         ].map((actor, idx) => (
-                            <div key={idx} className="flex gap-4 p-4 bg-card-bg rounded-3xl border border-card-border hover:border-brand-primary/30 transition-colors shadow-sm group">
-                                <div className="relative w-20 h-20 shrink-0">
-                                    <img src={actor.img || film.poster} className="w-full h-full rounded-2xl object-cover border border-brand-primary-light" alt={actor.name} />
+                            <div key={idx} className="flex flex-col p-2 bg-card-bg rounded-4xl border border-card-border hover:border-brand-primary/40 transition-all duration-300 shadow-sm hover:shadow-md group">
+
+                                {/* ส่วนของรูปภาพ: ขยายให้ใหญ่และเด่น (Aspect Ratio 1:1 หรือ 4:5) */}
+                                <div className="relative w-full aspect-square overflow-hidden rounded-3xl">
+                                    <img
+                                        src={actor.img || film.poster}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        alt={actor.name}
+                                    />
+                                    {/* Overlay ไล่เฉดสีเบาๆ ด้านล่างเพื่อให้ข้อความอ่านง่ายถ้ามีการซ้อนทับ */}
+                                    <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 </div>
-                                <div className="flex flex-col justify-center">
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-primary mb-1">{actor.name}</span>
-                                    <p className="text-sm font-bold text-content-text-main">as <span className="text-brand-accent">{actor.role}</span></p>
+
+                                {/* ส่วนของข้อความ: ย้ายมาไว้ด้านล่างรูป */}
+                                <div className="p-5 text-center">
+                                    <span className="block text-[12px] font-black uppercase tracking-[0.2em] text-brand-primary mb-2">
+                                        {actor.name}
+                                    </span>
+                                    <p className="text-lg font-bold text-content-text-main leading-tight">
+                                        as <span className="text-brand-accent">{actor.role}</span>
+                                    </p>
                                 </div>
                             </div>
                         ))}
@@ -306,47 +312,107 @@ const FilmographyDetailPage = () => {
                     <div className="relative overflow-hidden bg-card-bg p-8 md:p-12 rounded-[2.5rem] border border-card-border shadow-sm">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                         <p className="relative text-sm md:text-lg text-content-text-sub leading-relaxed whitespace-pre-line font-medium">
-                            {film.synopsis || "Coming soon..."}
+                            {detail?.synopsis || "Coming soon..."}
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* Trend Summary */}
-            {trendTags.length > 0 && (
+            {/* Trends Section */}
+            {trends.length > 0 && (
                 <div className="px-6 py-12">
-                    <div className="relative">
-                        <SectionHeader icon={TrendingUp} title="Trend Summary" subtitle="X Engagement Metrics" />
-                        <div className="relative overflow-hidden bg-card-bg p-8 md:p-12 rounded-[2.5rem] border border-card-border shadow-sm">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                                {trendTags.map((item, idx) => (
-                                    <a
-                                        key={idx}
-                                        href={item.link}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="group block p-5 bg-page-bg border border-card-border rounded-3xl hover:border-brand-primary/40 transition-all duration-300 shadow-xs"
+                    <SectionHeader icon={TrendingUp} title="Trend Summary" subtitle="X Engagement Metrics" />
+                    <div className="space-y-4">
+                        {/* Mobile View */}
+                        <div className="block md:hidden space-y-4">
+                            {trends.length > 0 ? (
+                                trends.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        onClick={() => item.source_link && window.open(item.source_link, '_blank')}
+                                        className={`bg-card-bg p-5 rounded-3xl border border-card-border shadow-sm active:scale-[0.98] transition-all ${item.source_link ? 'cursor-pointer' : ''}`}
                                     >
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div className="min-w-0">
-                                                <span className="text-[9px] font-black text-content-text-muted uppercase tracking-widest block mb-1.5 group-hover:text-brand-primary transition-colors">
-                                                    {item.label}
-                                                </span>
-                                                <span className="text-content-text-main font-bold truncate block group-hover:text-brand-primary transition-colors">
-                                                    {item.tag}
-                                                </span>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="px-3 py-1 bg-brand-primary/10 text-brand-primary rounded-lg text-xs font-black">
+                                                {item.episode}
                                             </div>
-                                            <div className="text-right shrink-0">
-                                                <span className="text-[8px] font-bold text-content-text-muted uppercase block mb-1">Engage</span>
-                                                <span className="text-lg font-black text-brand-primary">
-                                                    {item.engage}
-                                                </span>
+                                            <div className="text-[11px] font-bold text-content-text-muted uppercase tracking-wider">
+                                                {new Date(item.air_date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
                                             </div>
                                         </div>
-                                    </a>
-                                ))}
-                            </div>
+
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-10 gap-4 pt-4 border-t border-card-border/50">
+                                                {/* Hashtag: 70% (7/10) */}
+                                                <div className="col-span-7">
+                                                    <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-1">Hashtag</p>
+                                                    <p className="text-sm font-bold text-content-text-main whitespace-pre-line leading-relaxed">
+                                                        {item.hashtag}
+                                                    </p>
+                                                </div>
+
+                                                {/* Posts: 30% (3/10) */}
+                                                <div className="col-span-3">
+                                                    <p className="text-[10px] font-black text-content-text-muted uppercase mb-1">Posts</p>
+                                                    <p className="text-sm font-bold text-content-text-main whitespace-pre-line">
+                                                        {item.posts}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-card-border/50">
+                                                <div>
+                                                    <p className="text-[10px] font-black text-content-text-muted uppercase mb-1">Rank (TH/WW)</p>
+                                                    <p className="text-sm font-bold text-content-text-main">
+                                                        {item.rank_th} / {item.rank_ww || '-'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black text-content-text-muted uppercase mb-1">Location Count</p>
+                                                    <p className="text-sm font-bold text-brand-accent">{item.location_count}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center p-10 bg-card-bg rounded-3xl border border-card-border italic text-content-text-muted">
+                                    No trend data available.
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Desktop View */}
+                        <div className="hidden md:block overflow-hidden bg-card-bg rounded-[2.5rem] border border-card-border shadow-sm">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-card-border bg-surface-soft">
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-content-text-muted text-center">Episode</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-content-text-muted text-center whitespace-nowrap">Date</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-content-text-muted text-center">Hashtag</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-content-text-muted text-center">Posts</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-content-text-muted text-center whitespace-nowrap">Rank (TH/WW)</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-content-text-muted text-center">Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-card-border">
+                                    {trends.map((item) => (
+                                        <tr
+                                            key={item.id}
+                                            onClick={() => item.source_link && window.open(item.source_link, '_blank', 'noopener,noreferrer')}
+                                            className={`transition-colors ${item.source_link ? 'cursor-pointer hover:bg-brand-primary/5' : ''}`}
+                                        >
+                                            <td className="px-6 py-4 text-center font-bold text-content-text-main">{item.episode}</td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap">
+                                                {new Date(item.air_date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                                            </td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-pre-line leading-relaxed">{item.hashtag}</td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-pre-line leading-relaxed">{item.posts}</td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap">{item.rank_th} / {item.rank_ww}</td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold">{item.location_count}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

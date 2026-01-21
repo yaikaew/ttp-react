@@ -25,6 +25,7 @@ const ManagementPage = () => {
     const navigate = useNavigate();
     const [data, setData] = useState<Record<string, unknown>[]>([]);
     const [artists, setArtists] = useState<{ id: number, name: string }[]>([]);
+    const [filmographies, setFilmographies] = useState<{ id: number, title: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,7 @@ const ManagementPage = () => {
     // Filter states
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [filterArtist, setFilterArtist] = useState<string>('');
+    const [filterFilm, setFilterFilm] = useState<string>('');
     const [filterStartDate, setFilterStartDate] = useState<string>('');
     const [filterEndDate, setFilterEndDate] = useState<string>('');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -51,10 +53,15 @@ const ManagementPage = () => {
         setError(null);
 
         try {
-            // Fetch data with artist relation
+            // Fetch data with artist and filmography relation
+            let selectStr = '*, artist:artist_id(name)';
+            if (tableName === 'filmographydetail' || tableName === 'filmographytrends') {
+                selectStr += ', filmography:filmography_id(title)';
+            }
+
             let query = supabase
                 .from(tableName)
-                .select('*, artist:artist_id(name)');
+                .select(selectStr);
 
             // Explicit list of tables that have a 'date' column for sorting
             const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents', 'awards'];
@@ -64,7 +71,6 @@ const ManagementPage = () => {
                 query = query.order('date', { ascending: sortOrder === 'asc', nullsFirst: false });
                 query = query.order('id', { ascending: sortOrder === 'asc' });
             } else {
-                // For tables like 'artist' and 'filmographydetail' (or fallback), sort by ID
                 query = query.order('id', { ascending: sortOrder === 'asc' });
             }
 
@@ -78,13 +84,17 @@ const ManagementPage = () => {
                     .order('id', { ascending: sortOrder === 'asc' });
 
                 if (fallbackError) throw fallbackError;
-                setData((fallbackResult as Record<string, unknown>[]) || []);
+                setData((fallbackResult as unknown as Record<string, unknown>[]) || []);
             } else {
-                setData((result as Record<string, unknown>[]) || []);
+                setData((result as unknown as Record<string, unknown>[]) || []);
             }
 
             const { data: artistData } = await supabase.from('artist').select('id, name').order('name');
-            setArtists((artistData as { id: number, name: string }[]) || []);
+            setArtists((artistData as unknown as { id: number, name: string }[]) || []);
+
+            // Always fetch filmographies if we might need them for dropdowns
+            const { data: filmData } = await supabase.from('filmography').select('id, title').order('title');
+            setFilmographies((filmData as unknown as { id: number, title: string }[]) || []);
 
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการดึงข้อมูล');
@@ -135,6 +145,7 @@ const ManagementPage = () => {
             // Create a copy and remove non-database fields
             const payload = { ...editData as Record<string, unknown> };
             delete payload.artist;
+            delete payload.filmography;
             delete payload.id;
 
             if (isAddMode) {
@@ -163,7 +174,7 @@ const ManagementPage = () => {
         const columnsToUse = data.length > 0 ? Object.keys(data[0]) : config?.importantColumns || [];
 
         columnsToUse.forEach(col => {
-            if (col === 'id' || col === 'artist') return;
+            if (col === 'id' || col === 'artist' || col === 'filmography') return;
             const firstRowValue = data[0]?.[col];
             if (typeof firstRowValue === 'boolean') {
                 template[col] = false;
@@ -195,6 +206,7 @@ const ManagementPage = () => {
         );
 
         const matchesArtist = !filterArtist || String(item.artist_id) === filterArtist;
+        const matchesFilm = !filterFilm || String(item.filmography_id) === filterFilm;
 
         let matchesDate = true;
         const itemDate = item.date as string;
@@ -205,11 +217,12 @@ const ManagementPage = () => {
             matchesDate = false;
         }
 
-        return matchesSearch && matchesArtist && matchesDate;
+        return matchesSearch && matchesArtist && matchesFilm && matchesDate;
     });
 
     const resetFilters = () => {
         setFilterArtist('');
+        setFilterFilm('');
         setFilterStartDate('');
         setFilterEndDate('');
     };
@@ -257,6 +270,18 @@ const ManagementPage = () => {
             return (
                 <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-bold whitespace-nowrap">
                     {artist.name}
+                </span>
+            );
+        }
+
+        if (col === 'filmography_id') {
+            const filmographyId = Number(row[col]);
+            const filmography = row.filmography as { title: string } | undefined;
+            const title = filmography?.title || filmographies.find(f => f.id === filmographyId)?.title || String(row[col] ?? '-');
+
+            return (
+                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-bold whitespace-nowrap">
+                    {title}
                 </span>
             );
         }
@@ -356,82 +381,116 @@ const ManagementPage = () => {
                         className={`flex items-center justify-center gap-2 border rounded-2xl py-3.5 px-4 font-bold transition-all ${isFilterVisible ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
                     >
                         <Filter size={18} />
-                        ตัวกรอง {(filterArtist || filterStartDate || filterEndDate) ? '(1+)' : ''}
+                        ตัวกรอง {(filterArtist || filterFilm || filterStartDate || filterEndDate) ? '(1+)' : ''}
                     </button>
                 </div>
 
                 {isFilterVisible && (
-                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/50 grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">กรองด้วยศิลปิน</label>
-                            <select
-                                value={filterArtist}
-                                onChange={(e) => setFilterArtist(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 transition-all"
-                            >
-                                <option value="">ทั้งหมด</option>
-                                {artists.map(a => (
-                                    <option key={a.id} value={a.id}>{a.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">ช่วงวันที่ (เริ่มต้น - สิ้นสุด)</label>
-                            <div className="flex items-center gap-3">
-                                <div className="relative flex-1">
-                                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                    <input
-                                        type="date"
-                                        value={filterStartDate}
-                                        onChange={(e) => setFilterStartDate(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 pl-11 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 text-xs transition-all"
-                                    />
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-100/50 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6 items-end">
+                            {/* Artist Filter */}
+                            {(data.length > 0 && 'artist_id' in data[0]) && (
+                                <div className="space-y-2 xl:col-span-3">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">กรองด้วยศิลปิน</label>
+                                    <select
+                                        value={filterArtist}
+                                        onChange={(e) => setFilterArtist(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 transition-all"
+                                    >
+                                        <option value="">ศิลปินทั้งหมด</option>
+                                        {artists.map(a => (
+                                            <option key={a.id} value={a.id}>{a.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                                <span className="text-slate-300">-</span>
-                                <div className="relative flex-1">
-                                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                    <input
-                                        type="date"
-                                        value={filterEndDate}
-                                        onChange={(e) => setFilterEndDate(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 pl-11 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 text-xs transition-all"
-                                    />
+                            )}
+
+                            {/* Filmography Filter */}
+                            {(data.length > 0 && 'filmography_id' in data[0]) && (
+                                <div className="space-y-2 xl:col-span-3">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">กรองด้วยผลงาน</label>
+                                    <select
+                                        value={filterFilm}
+                                        onChange={(e) => setFilterFilm(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 focus:outline-none focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600 font-bold text-slate-700 transition-all"
+                                    >
+                                        <option value="">ผลงานทั้งหมด</option>
+                                        {filmographies.map(f => (
+                                            <option key={f.id} value={f.id}>{f.title}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
+                            )}
+
+                            {/* Date Filter */}
                             {(() => {
                                 const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents', 'awards'];
                                 const isDateTable = tableName && dateTables.includes(tableName);
+                                if (!isDateTable) return null;
                                 return (
-                                    <>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                                            เรียงลำดับ ({isDateTable ? 'วันที่' : 'ID'})
-                                        </label>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    const nextOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-                                                    setSortOrder(nextOrder);
-                                                }}
-                                                className="flex-1 flex items-center justify-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3.5 font-bold text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 transition-all"
-                                            >
-                                                <ArrowUpDown size={18} className="text-indigo-500" />
-                                                {sortOrder === 'asc'
-                                                    ? (isDateTable ? 'เก่า → ใหม่' : 'ID น้อย → มาก')
-                                                    : (isDateTable ? 'ใหม่ → เก่า' : 'ID มาก → น้อย')}
-                                            </button>
-                                            <button
-                                                onClick={resetFilters}
-                                                className="p-3.5 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
-                                                title="ล้างตัวกรอง"
-                                            >
-                                                <X size={20} />
-                                            </button>
+                                    <div className="space-y-2 md:col-span-2 xl:col-span-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">ช่วงวันที่ (เริ่มต้น - สิ้นสุด)</label>
+                                        <div className="flex items-center gap-2 p-1 bg-slate-50 border border-slate-200 rounded-2xl">
+                                            <div className="relative flex-1">
+                                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                                <input
+                                                    type="date"
+                                                    value={filterStartDate}
+                                                    onChange={(e) => setFilterStartDate(e.target.value)}
+                                                    className="w-full bg-transparent border-none p-2.5 pl-9 focus:outline-none font-bold text-slate-700 text-xs transition-all"
+                                                />
+                                            </div>
+                                            <div className="w-px h-6 bg-slate-200" />
+                                            <div className="relative flex-1">
+                                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                                <input
+                                                    type="date"
+                                                    value={filterEndDate}
+                                                    onChange={(e) => setFilterEndDate(e.target.value)}
+                                                    className="w-full bg-transparent border-none p-2.5 pl-9 focus:outline-none font-bold text-slate-700 text-xs transition-all"
+                                                />
+                                            </div>
                                         </div>
-                                    </>
+                                    </div>
                                 );
                             })()}
+
+                            {/* Sort & Reset */}
+                            <div className="space-y-2 md:col-span-2 xl:col-span-2">
+                                {(() => {
+                                    const dateTables = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'endorsements', 'contents', 'awards'];
+                                    const isDateTable = tableName && dateTables.includes(tableName);
+                                    return (
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 leading-none block">เรียง</label>
+                                                <button
+                                                    onClick={() => {
+                                                        const nextOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                                                        setSortOrder(nextOrder);
+                                                    }}
+                                                    className="w-full flex items-center justify-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl p-3.5 font-bold text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 transition-all text-xs"
+                                                >
+                                                    <ArrowUpDown size={14} className="text-indigo-500" />
+                                                    {sortOrder === 'asc'
+                                                        ? (isDateTable ? 'เก่า' : 'น้อย')
+                                                        : (isDateTable ? 'ใหม่' : 'มาก')}
+                                                </button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 leading-none block">&nbsp;</label>
+                                                <button
+                                                    onClick={resetFilters}
+                                                    className="p-3.5 bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all border border-transparent hover:border-red-100"
+                                                    title="ล้างตัวกรอง"
+                                                >
+                                                    <X size={20} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -466,7 +525,7 @@ const ManagementPage = () => {
                                 <tr className="bg-slate-50/80 border-b border-slate-100">
                                     {getVisibleColumns().map(col => (
                                         <th key={col} className="px-6 py-5 text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest leading-none">
-                                            {col === 'artist_id' ? 'ศิลปิน' : col.replace('_', ' ')}
+                                            {col === 'artist_id' ? 'ศิลปิน' : col === 'filmography_id' ? 'ผลงาน' : col.replace('_', ' ')}
                                         </th>
                                     ))}
                                     <th className="sticky right-0 bg-slate-50/80 px-6 py-5 text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest leading-none text-right z-10 shadow-[-12px_0_12px_-12px_rgba(0,0,0,0.1)]">
@@ -518,196 +577,162 @@ const ManagementPage = () => {
                 )}
             </div>
 
-            {isDrawerOpen && (
-                <div className="fixed inset-0 z-100 flex justify-end text-slate-800">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsDrawerOpen(false)} />
-                    <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-500">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
-                            <div>
-                                <h2 className="text-2xl font-black text-slate-800">{isAddMode ? 'เพิ่มข้อมูลใหม่' : 'แก้ไขข้อมูล'}</h2>
-                                {!isAddMode && <p className="text-sm text-slate-400 font-bold">ID: {String(selectedRow?.id ?? '')}</p>}
+            {
+                isDrawerOpen && (
+                    <div className="fixed inset-0 z-100 flex justify-end text-slate-800">
+                        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsDrawerOpen(false)} />
+                        <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-500">
+                            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
+                                <div>
+                                    <h2 className="text-2xl font-black text-slate-800">{isAddMode ? 'เพิ่มข้อมูลใหม่' : 'แก้ไขข้อมูล'}</h2>
+                                    {!isAddMode && <p className="text-sm text-slate-400 font-bold">ID: {String(selectedRow?.id ?? '')}</p>}
+                                </div>
+                                <button
+                                    onClick={() => setIsDrawerOpen(false)}
+                                    className="p-3 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-all border border-slate-100 shadow-sm"
+                                >
+                                    <X size={24} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setIsDrawerOpen(false)}
-                                className="p-3 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-all border border-slate-100 shadow-sm"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
-                            {(() => {
-                                const entries = Object.entries(editData).filter(([key]) => key !== 'artist');
+                            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+                                {(() => {
+                                    const entries = Object.entries(editData).filter(([key]) => key !== 'artist');
 
-                                if (tableName === 'filmographydetail') {
-                                    const getSortScore = (key: string) => {
-                                        if (key === 'id') return -2;
-                                        if (key === 'filmography_id') return -1;
+                                    return entries.map(([key, value]) => {
+                                        const isId = key === 'id';
+                                        const isArtistId = key === 'artist_id';
+                                        const isDate = key.includes('date');
+                                        const isImageUrl = key.includes('url') || key.includes('image');
 
-                                        const match = key.match(/^(tag|engage|link|tagtrailer|engagetrailer|linktrailer)(\d+)?$/);
-                                        if (!match) return 999;
+                                        return (
+                                            <div key={key}>
+                                                <div className="space-y-2 mb-4">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                                                        {key.replace('_', ' ')}
+                                                    </label>
 
-                                        const prefix = match[1];
-                                        const numStr = match[2];
-
-                                        let base = 0;
-                                        if (prefix.includes('trailer')) {
-                                            base = 10;
-                                        } else if (numStr) {
-                                            base = (parseInt(numStr) * 10) + 10;
-                                        }
-
-                                        const subPriority: Record<string, number> = { tag: 0, engage: 1, link: 2, tagtrailer: 0, engagetrailer: 1, linktrailer: 2 };
-                                        return base + (subPriority[prefix] ?? 0);
-                                    };
-
-                                    entries.sort((a, b) => getSortScore(a[0]) - getSortScore(b[0]));
-                                }
-
-                                return entries.map(([key, value], index) => {
-                                    const isId = key === 'id';
-                                    const isArtistId = key === 'artist_id';
-                                    const isDate = key.includes('date');
-                                    const isImageUrl = key.includes('url') || key.includes('image');
-
-                                    // Special Header for Filmography Detail Groups
-                                    let sectionHeader = null;
-                                    if (tableName === 'filmographydetail') {
-                                        const currentMatch = key.match(/\d+$/);
-                                        const currentNum = currentMatch ? currentMatch[0] : (key.includes('trailer') ? 'Trailer' : null);
-
-                                        const prevKey = index > 0 ? entries[index - 1][0] : null;
-                                        const prevMatch = prevKey?.match(/\d+$/);
-                                        const prevNum = prevMatch ? prevMatch[0] : (prevKey?.includes('trailer') ? 'Trailer' : null);
-
-                                        if (currentNum && currentNum !== prevNum) {
-                                            sectionHeader = (
-                                                <div className="pt-6 pb-2 border-b border-slate-100 mb-4 first:pt-0">
-                                                    <h3 className="text-sm font-black text-indigo-600 uppercase tracking-widest">
-                                                        {currentNum === 'Trailer' ? 'Official Trailer Section' : `Episode ${currentNum} Section`}
-                                                    </h3>
+                                                    {isArtistId ? (
+                                                        <select
+                                                            value={String(value ?? '')}
+                                                            onChange={(e) => handleInputChange(key, e.target.value ? Number(e.target.value) : null)}
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                        >
+                                                            <option value="">เลือกศิลปิน</option>
+                                                            {artists.map(a => (
+                                                                <option key={a.id} value={a.id}>{a.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : key === 'filmography_id' ? (
+                                                        <select
+                                                            value={String(value ?? '')}
+                                                            onChange={(e) => handleInputChange(key, e.target.value ? Number(e.target.value) : null)}
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                        >
+                                                            <option value="">เลือกเรื่อง/ผลงาน</option>
+                                                            {filmographies.map(f => (
+                                                                <option key={f.id} value={f.id}>{f.title}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : typeof value === 'boolean' ? (
+                                                        <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={key}
+                                                                checked={value}
+                                                                onChange={(e) => handleInputChange(key, e.target.checked)}
+                                                                className="w-6 h-6 rounded-lg text-indigo-600 focus:ring-indigo-600 border-slate-300 transition-all"
+                                                            />
+                                                            <label htmlFor={key} className="font-bold text-slate-700 select-none cursor-pointer">
+                                                                {value ? 'เปิดใช้งาน (Enabled)' : 'ปิดใช้งาน (Disabled)'}
+                                                            </label>
+                                                        </div>
+                                                    ) : (tableName === 'contents' && key === 'type') ? (
+                                                        <div className="relative group">
+                                                            <select
+                                                                value={String(value ?? '')}
+                                                                onChange={(e) => handleInputChange(key, e.target.value)}
+                                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                            >
+                                                                <option value="">เลือกประเภทคอนเทนต์</option>
+                                                                {['Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Live Event', 'Interview'].map(opt => (
+                                                                    <option key={opt} value={opt}>{opt}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    ) : (tableName === 'awards' && key === 'result') ? (
+                                                        <div className="relative group">
+                                                            <select
+                                                                value={String(value ?? '')}
+                                                                onChange={(e) => handleInputChange(key, e.target.value)}
+                                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                            >
+                                                                <option value="">เลือกผลรางวัล</option>
+                                                                {['Nominated', 'Received'].map(opt => (
+                                                                    <option key={opt} value={opt}>{opt === 'Nominated' ? '🌟 Nominated (เข้าชิง)' : '🏆 Received (ได้รับ)'}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    ) : isDate ? (
+                                                        <div className="relative group">
+                                                            <input
+                                                                type="date"
+                                                                value={String(value ?? '').split('T')[0]}
+                                                                onChange={(e) => handleInputChange(key, e.target.value)}
+                                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="relative group">
+                                                            {isImageUrl && value ? (
+                                                                <div className="mb-4">
+                                                                    <img src={value as string} alt="" className="max-h-48 w-full object-cover rounded-2xl border border-slate-200 shadow-md" />
+                                                                </div>
+                                                            ) : null}
+                                                            <textarea
+                                                                value={String(value ?? '')}
+                                                                onChange={(e) => handleInputChange(key, e.target.value)}
+                                                                disabled={isId}
+                                                                rows={isImageUrl || key === 'description' ? 3 : 1}
+                                                                className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium text-slate-700 ${isId ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
+                                                                placeholder={`ระบุ ${key}...`}
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            );
-                                        }
-                                    }
-
-                                    return (
-                                        <div key={key}>
-                                            {sectionHeader}
-                                            <div className="space-y-2 mb-4">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                                                    {key.replace('_', ' ')}
-                                                </label>
-
-                                                {isArtistId ? (
-                                                    <select
-                                                        value={String(value ?? '')}
-                                                        onChange={(e) => handleInputChange(key, e.target.value ? Number(e.target.value) : null)}
-                                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
-                                                    >
-                                                        <option value="">เลือกศิลปิน</option>
-                                                        {artists.map(a => (
-                                                            <option key={a.id} value={a.id}>{a.name}</option>
-                                                        ))}
-                                                    </select>
-                                                ) : typeof value === 'boolean' ? (
-                                                    <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={key}
-                                                            checked={value}
-                                                            onChange={(e) => handleInputChange(key, e.target.checked)}
-                                                            className="w-6 h-6 rounded-lg text-indigo-600 focus:ring-indigo-600 border-slate-300 transition-all"
-                                                        />
-                                                        <label htmlFor={key} className="font-bold text-slate-700 select-none cursor-pointer">
-                                                            {value ? 'เปิดใช้งาน (Enabled)' : 'ปิดใช้งาน (Disabled)'}
-                                                        </label>
-                                                    </div>
-                                                ) : (tableName === 'contents' && key === 'type') ? (
-                                                    <div className="relative group">
-                                                        <select
-                                                            value={String(value ?? '')}
-                                                            onChange={(e) => handleInputChange(key, e.target.value)}
-                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
-                                                        >
-                                                            <option value="">เลือกประเภทคอนเทนต์</option>
-                                                            {['Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Live Event', 'Interview'].map(opt => (
-                                                                <option key={opt} value={opt}>{opt}</option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                ) : (tableName === 'awards' && key === 'result') ? (
-                                                    <div className="relative group">
-                                                        <select
-                                                            value={String(value ?? '')}
-                                                            onChange={(e) => handleInputChange(key, e.target.value)}
-                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
-                                                        >
-                                                            <option value="">เลือกผลรางวัล</option>
-                                                            {['Nominated', 'Received'].map(opt => (
-                                                                <option key={opt} value={opt}>{opt === 'Nominated' ? '🌟 Nominated (เข้าชิง)' : '🏆 Received (ได้รับ)'}</option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                ) : isDate ? (
-                                                    <div className="relative group">
-                                                        <input
-                                                            type="date"
-                                                            value={String(value ?? '').split('T')[0]}
-                                                            onChange={(e) => handleInputChange(key, e.target.value)}
-                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div className="relative group">
-                                                        {isImageUrl && value ? (
-                                                            <div className="mb-4">
-                                                                <img src={value as string} alt="" className="max-h-48 w-full object-cover rounded-2xl border border-slate-200 shadow-md" />
-                                                            </div>
-                                                        ) : null}
-                                                        <textarea
-                                                            value={String(value ?? '')}
-                                                            onChange={(e) => handleInputChange(key, e.target.value)}
-                                                            disabled={isId}
-                                                            rows={isImageUrl || key === 'description' ? 3 : 1}
-                                                            className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium text-slate-700 ${isId ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
-                                                            placeholder={`ระบุ ${key}...`}
-                                                        />
-                                                    </div>
-                                                )}
                                             </div>
-                                        </div>
-                                    );
-                                });
-                            })()}
-                        </div>
+                                        );
+                                    });
+                                })()}
+                            </div>
 
-                        <div className="p-6 border-t border-slate-100 bg-white flex gap-4">
-                            <button
-                                onClick={() => setIsDrawerOpen(false)}
-                                className="flex-1 py-4 px-6 border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all"
-                            >
-                                ยกเลิก
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="flex-2 py-4 px-6 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all flex items-center justify-center gap-3 disabled:opacity-50 transform active:scale-95"
-                            >
-                                {saving ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        <Save size={20} />
-                                        {isAddMode ? 'สร้างข้อมูลใหม่' : 'บันทึกการแก้ไข'}
-                                    </>
-                                )}
-                            </button>
+                            <div className="p-6 border-t border-slate-100 bg-white flex gap-4">
+                                <button
+                                    onClick={() => setIsDrawerOpen(false)}
+                                    className="flex-1 py-4 px-6 border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all"
+                                >
+                                    ยกเลิก
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="flex-2 py-4 px-6 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all flex items-center justify-center gap-3 disabled:opacity-50 transform active:scale-95"
+                                >
+                                    {saving ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <Save size={20} />
+                                            {isAddMode ? 'สร้างข้อมูลใหม่' : 'บันทึกการแก้ไข'}
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
