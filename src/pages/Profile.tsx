@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, User, Instagram, Twitter, Music2 } from 'lucide-react';
 
-const ProfilePage: React.FC = () => {
+const Profile: React.FC = () => {
     const idols = [
         {
             id: 1,
@@ -169,4 +169,4 @@ const InfoRow = ({ icon, label, value }: { icon: React.ReactNode; label: string;
     </div>
 );
 
-export default ProfilePage;
+export default Profile;

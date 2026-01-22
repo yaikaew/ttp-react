@@ -1,74 +1,56 @@
-import { useMemo, useState } from 'react';
-import { Calendar } from 'lucide-react';
+import { useState } from 'react';
+import { useDiscography } from '../hooks/useDiscography';
+import { useFilter } from '../hooks/useFilter';
 import FilterHeader from '../components/FilterHeader';
-import { useDiscography, useArtists } from '../hooks/useArtistData';
-import { getArtistTheme } from '../utils/theme';
-import { LoadingState } from "../components/LoadingState";
+import { LoadingState } from '../components/LoadingState';
 import { NoResults } from '../components/NoResults';
+import { getArtistTheme } from '../utils/theme';
+import { Calendar } from 'lucide-react';
 
-const DiscographyPage = () => {
+const Discography = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [filterArtist, setFilterArtist] = useState('All');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-    const { data, isLoading } = useDiscography(sortOrder);
+    const { discography, loading } = useDiscography();
 
-    const { data: artists = [] } = useArtists();
-    const artistOptions = useMemo(() => {
-        return ['All', ...artists.map(a => a.name)];
-    }, [artists]);
+    const {
+        state,
+        setters,
+        handleReset,
+        filteredItems
+    } = useFilter(discography || []);
 
-    const handleReset = () => {
-        setFilterArtist('All');
-        setSearchTerm('');
-        setStartDate('');
-        setEndDate('');
-        setSortOrder('desc');
-    };
-
-    const filteredItems = data?.filter(item => {
-        const itemDate = new Date(item.date).getTime();
-        const start = startDate ? new Date(startDate).getTime() : -Infinity;
-        const end = endDate ? new Date(endDate).getTime() : Infinity;
-        const matchArtist = filterArtist === 'All' || item.artistName === filterArtist;
-        const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchDate = itemDate >= start && itemDate <= end;
-
-        return matchArtist && matchSearch && matchDate;
-    }) || [];
-
-    if (isLoading) return <LoadingState />;
+    if (loading) return <LoadingState />;
 
     return (
-        <div className="min-h-screen pb-20">
+        <div className="max-w-7xl mx-auto min-h-screen pb-20">
             <FilterHeader
-                title="Discography" subtitle="Music & Original Soundtracks"
+                title="Discography" subtitle="Music & Releases"
                 isFilterOpen={isFilterOpen} setIsFilterOpen={setIsFilterOpen}
-                sortOrder={sortOrder} setSortOrder={setSortOrder}
-                searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                startDate={startDate} setStartDate={setStartDate}
-                endDate={endDate} setEndDate={setEndDate}
+                sortOrder={state.sortOrder} setSortOrder={setters.setSortOrder}
+                searchTerm={state.searchTerm} setSearchTerm={setters.setSearchTerm}
+                startDate={state.startDate} setStartDate={setters.setStartDate}
+                endDate={state.endDate} setEndDate={setters.setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: filterArtist, options: artistOptions, onSelect: setFilterArtist },
+                    { label: 'Artist', currentValue: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
                 ]}
             />
 
-            <div className="max-w-7xl mx-auto px-4">
+            <div className="px-4">
                 {filteredItems.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         {filteredItems.map((item) => {
-                            const artistTheme = getArtistTheme(item.artistName);
+                            const artistData = Array.isArray(item.artist) ? item.artist[0] : item.artist;
+                            const artistName = artistData?.name || 'Unknown';
+                            const artistTheme = getArtistTheme(artistName);
+
                             return (
                                 <div key={item.id} className="group relative bg-card-bg rounded-3xl border border-card-border overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand-primary/10 hover:-translate-y-1 transition-all duration-500 flex flex-col">
 
                                     {/* Album Cover Section */}
                                     <div className="aspect-square overflow-hidden relative">
                                         <img
-                                            src={item.img}
+                                            src={item.img || ""}
                                             alt={item.title}
                                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                                         />
@@ -78,7 +60,7 @@ const DiscographyPage = () => {
 
                                         {/* Artist Tag - ปรับให้ดูเป็น Glassmorphism */}
                                         <div className={`absolute top-3 left-3 ${artistTheme.bg} ${artistTheme.text} px-2.5 py-1 rounded-full border ${artistTheme.border} text-[10px] font-black uppercase tracking-widest backdrop-blur-md bg-opacity-80 shadow-lg`}>
-                                            {item.artistName}
+                                            {artistName}
                                         </div>
                                     </div>
 
@@ -98,7 +80,7 @@ const DiscographyPage = () => {
                                         {/* Action Buttons - ปรับให้เป็นแนว Button Group ที่ดูสะอาดตา */}
                                         <div className="mt-5 pt-4 border-t border-card-border/50 flex items-center justify-between">
                                             <div className="flex items-center gap-4">
-                                                <a href={item.mv} target="_blank" rel="noreferrer"
+                                                <a href={item.mv || ""} target="_blank" rel="noreferrer"
                                                     className="group/link flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-content-text-sub hover:text-brand-primary transition-colors">
                                                     <span className="relative">
                                                         MV
@@ -106,7 +88,7 @@ const DiscographyPage = () => {
                                                     </span>
                                                 </a>
 
-                                                <a href={item.streaming} target="_blank" rel="noreferrer"
+                                                <a href={item.streaming || ""} target="_blank" rel="noreferrer"
                                                     className="group/link flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-content-text-sub hover:text-brand-primary transition-colors">
                                                     <span className="relative">
                                                         Streaming
@@ -128,4 +110,4 @@ const DiscographyPage = () => {
     );
 };
 
-export default DiscographyPage;
+export default Discography;

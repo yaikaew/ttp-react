@@ -1,0 +1,19 @@
+// calendarService.ts
+import { supabase } from "../lib/supabaseClient";
+
+export const calendarService = {
+  async getEvents() {
+    const { data, error } = await supabase
+      .from("calendar")
+      .select(
+        `
+        *,
+        artist:artist_id ( name )
+      `,
+      )
+      .order("date", { ascending: true }); // เรียงจากวันที่ใกล้ที่สุดไปไกลที่สุด
+
+    if (error) throw error;
+    return data || [];
+  },
+};

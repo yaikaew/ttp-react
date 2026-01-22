@@ -1,78 +1,58 @@
-import { useState, useMemo } from 'react';
-import { useMagazines, useArtists } from '../hooks/useArtistData';
-import FilterHeader from '../components/FilterHeader';
+import { useState } from 'react';
+import { useMagazine } from '../hooks/useMagazine';
+import { useFilter } from '../hooks/useFilter'; // 1. Import hook เข้ามา
+import FilterHeader from '../components/FilterHeader'
+import { LoadingState } from '../components/LoadingState'
+import { NoResults } from '../components/NoResults';
 import { getArtistTheme } from '../utils/theme';
 import { ExternalLink, Calendar } from 'lucide-react';
-import { LoadingState } from "../components/LoadingState";
-import { NoResults } from '../components/NoResults';
 
-const MagazinePage = () => {
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [filterArtist, setFilterArtist] = useState('All');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+const Magazine = () => {
+    const [isFilterOpen, setIsFilterOpen] = useState(false)
+    const { magazine, loading } = useMagazine();
 
-    const { data, isLoading } = useMagazines(sortOrder);
+    const {
+        state,
+        setters,
+        handleReset,
+        filteredItems
+    } = useFilter(magazine || []);
 
-    const { data: artists = [] } = useArtists();
-    const artistOptions = useMemo(() => {
-        return ['All', ...artists.map(a => a.name)];
-    }, [artists]);
-
-    const handleReset = () => {
-        setFilterArtist('All');
-        setSearchTerm('');
-        setStartDate('');
-        setEndDate('');
-        setSortOrder('desc');
-    };
-
-    const filteredItems = data?.filter(item => {
-        const itemDate = new Date(item.date).getTime();
-        const start = startDate ? new Date(startDate).getTime() : -Infinity;
-        const end = endDate ? new Date(endDate).getTime() : Infinity;
-        const matchArtist = filterArtist === 'All' || item.artistName === filterArtist;
-        const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchDate = itemDate >= start && itemDate <= end;
-
-        return matchArtist && matchSearch && matchDate;
-    }) || [];
-
-    if (isLoading) return <LoadingState />;
+    if (loading) return <LoadingState />
 
     return (
-        <div className="min-h-screen pb-20">
+        <div className="max-w-7xl mx-auto min-h-screen pb-20">
             <FilterHeader
-                title="Magazines" subtitle="Editorial Features"
+                title="Magazine" subtitle="Artist Features"
                 isFilterOpen={isFilterOpen} setIsFilterOpen={setIsFilterOpen}
-                sortOrder={sortOrder} setSortOrder={setSortOrder}
-                searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                startDate={startDate} setStartDate={setStartDate}
-                endDate={endDate} setEndDate={setEndDate}
+                sortOrder={state.sortOrder} setSortOrder={setters.setSortOrder}
+                searchTerm={state.searchTerm} setSearchTerm={setters.setSearchTerm}
+                startDate={state.startDate} setStartDate={setters.setStartDate}
+                endDate={state.endDate} setEndDate={setters.setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: filterArtist, options: artistOptions, onSelect: setFilterArtist },
+                    { label: 'Artist', currentValue: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
                 ]}
             />
 
-            <div className="max-w-7xl mx-auto px-4">
+            <div className="px-4">
                 {filteredItems.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                         {filteredItems.map((item) => {
-                            const artistTheme = getArtistTheme(item.artistName);
+                            const artistData = Array.isArray(item.artist) ? item.artist[0] : item.artist;
+                            const artistName = artistData?.name || 'Unknown';
+                            const artistTheme = getArtistTheme(artistName);
 
                             return (
                                 <div key={item.id} className="group bg-card-bg rounded-3xl border border-card-border overflow-hidden hover:shadow-lg hover:shadow-brand-primary/10 transition-all duration-200 flex flex-col">
                                     <div className="relative aspect-3/4 overflow-hidden bg-brand-primary-light/20">
                                         <img
-                                            src={item.img}
+                                            src={item.img || ""}
                                             alt={item.name}
                                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                         />
                                         <div className={`absolute top-3 left-3 ${artistTheme.bg} ${artistTheme.text} px-2 py-0.5 rounded-lg text-[8px] font-black uppercase border ${artistTheme.border} tracking-widest backdrop-blur-sm bg-opacity-90`}>
-                                            {item.artistName}
+                                            {artistName}
                                         </div>
                                     </div>
                                     <div className="p-4 flex flex-col flex-1">
@@ -90,7 +70,7 @@ const MagazinePage = () => {
                                         </h3>
                                         <div className="mt-auto">
                                             <a
-                                                href={item.promo_link}
+                                                href={item.promo_link || item.article_link || ""}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="flex items-center justify-center gap-1.5 py-2 bg-brand-primary-light/40 rounded-xl text-[8px] font-black uppercase tracking-widest text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-200"
@@ -100,7 +80,7 @@ const MagazinePage = () => {
                                         </div>
                                     </div>
                                 </div>
-                            );
+                            )
                         })}
                     </div>
                 ) : (
@@ -111,4 +91,4 @@ const MagazinePage = () => {
     );
 };
 
-export default MagazinePage;
+export default Magazine;

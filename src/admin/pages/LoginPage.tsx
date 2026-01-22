@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../../lib/supabaseClient';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { LogIn, Mail, Lock, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 
 const LoginPage = () => {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading } = useAdminAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);

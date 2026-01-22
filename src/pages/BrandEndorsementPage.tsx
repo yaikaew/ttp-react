@@ -1,70 +1,53 @@
 import { useState } from 'react';
-import { useEndorsements } from '../hooks/useArtistData';
-import { Award } from 'lucide-react';
-import FilterHeader from '../components/FilterHeader';
-import { getArtistTheme } from '../utils/theme';
+import { useEndorsement } from '../hooks/useEndorsement';
+import { useFilter } from '../hooks/useFilter'; // 1. Import hook เข้ามา
+import FilterHeader from '../components/FilterHeader'
+import { LoadingState } from '../components/LoadingState'
 import { NoResults } from '../components/NoResults';
-import { LoadingState } from '../components/LoadingState';
-
+import { getArtistTheme } from '../utils/theme';
+import { Award } from 'lucide-react';
 
 const BrandEndorsementPage = () => {
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [filterArtist, setFilterArtist] = useState('All');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [isFilterOpen, setIsFilterOpen] = useState(false)
+    const { endorsement, loading } = useEndorsement();
 
-    const { data, isLoading } = useEndorsements(sortOrder);
+    const {
+        state,
+        setters,
+        handleReset,
+        filteredItems
+    } = useFilter(endorsement || []);
 
-    const handleReset = () => {
-        setFilterArtist('All');
-        setSearchTerm('');
-        setStartDate('');
-        setEndDate('');
-        setSortOrder('desc');
-    };
-
-    const filteredItems = data?.filter(item => {
-        const itemDate = new Date(item.date).getTime();
-        const start = startDate ? new Date(startDate).getTime() : -Infinity;
-        const end = endDate ? new Date(endDate).getTime() : Infinity;
-
-        const matchArtist = filterArtist === 'All' || item.artistName === filterArtist;
-        const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchDate = itemDate >= start && itemDate <= end;
-
-        return matchArtist && matchSearch && matchDate;
-    }) || [];
-
-    if (isLoading) return <LoadingState />;
+    if (loading) return <LoadingState />
 
     return (
-        <div className="min-h-screen pb-20">
+        <div className="max-w-7xl mx-auto min-h-screen pb-20">
             <FilterHeader
                 title="Endorsements" subtitle="Official Brand Ambassadors & Partnerships"
                 isFilterOpen={isFilterOpen} setIsFilterOpen={setIsFilterOpen}
-                sortOrder={sortOrder} setSortOrder={setSortOrder}
-                searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                startDate={startDate} setStartDate={setStartDate}
-                endDate={endDate} setEndDate={setEndDate}
+                sortOrder={state.sortOrder} setSortOrder={setters.setSortOrder}
+                searchTerm={state.searchTerm} setSearchTerm={setters.setSearchTerm}
+                startDate={state.startDate} setStartDate={setters.setStartDate}
+                endDate={state.endDate} setEndDate={setters.setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setFilterArtist },
+                    { label: 'Artist', currentValue: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
                 ]}
             />
 
-            <div className="max-w-7xl mx-auto px-4">
+            <div className="px-4">
                 {filteredItems.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {filteredItems.map(item => {
-                            const artistTheme = getArtistTheme(item.artistName);
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                        {filteredItems.map((item) => {
+                            const artistData = Array.isArray(item.artist) ? item.artist[0] : item.artist;
+                            const artistName = artistData?.name || 'Unknown';
+                            const artistTheme = getArtistTheme(artistName);
 
                             return (
                                 <div key={item.id} className="group flex flex-col">
                                     <div className="relative aspect-square rounded-4xl overflow-hidden border border-card-border shadow-sm transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-brand-primary/20 group-hover:-translate-y-1.5">
                                         <img
-                                            src={item.img}
+                                            src={item.img || ''}
                                             alt={item.name}
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                         />
@@ -77,7 +60,7 @@ const BrandEndorsementPage = () => {
                                                     {item.name}
                                                 </h3>
                                                 <p className="text-[9px] font-black uppercase tracking-[0.15em] flex items-center gap-1.5">
-                                                    <span className={`${artistTheme.text}`}>{item.artistName}</span>
+                                                    <span className={`${artistTheme.text}`}>{artistName}</span>
                                                     <span className="text-content-text-muted opacity-40">•</span>
                                                     <span className="text-content-text-muted">{new Date(item.date).getFullYear()}</span>
                                                 </p>
@@ -94,7 +77,7 @@ const BrandEndorsementPage = () => {
                                         </p>
                                     </div>
                                 </div>
-                            );
+                            )
                         })}
                     </div>
                 ) : (

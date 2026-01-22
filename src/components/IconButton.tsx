@@ -26,7 +26,6 @@ export function IconButton({
                 w-12 h-12 rounded-2xl
                 transition-all duration-300
                 active:scale-90
-                cursor-pointer
                 
                 bg-card-bg 
                 border border-card-border

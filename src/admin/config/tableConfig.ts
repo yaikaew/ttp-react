@@ -66,6 +66,6 @@ export const TABLE_CONFIGS: Record<string, TableConfig> = {
   filmographytrends: {
     id: "filmographytrends",
     name: "ผลงาน (Trends)",
-    importantColumns: ["filmography_id", "episode", "hashtag"],
+    importantColumns: ["filmography_id", "episode", "air_date", "hashtag"],
   },
 };

@@ -1,49 +1,87 @@
-import { useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import type { Database } from '../types/supabase';
 import { CirclePlay, Layout } from 'lucide-react';
-import FilterHeader from '../components/FilterHeader';
-import { useFilmography, useArtists } from '../hooks/useArtistData';
-import { LoadingState } from "../components/LoadingState";
+import FilterHeader from '../components/FilterHeader'
+import { LoadingState } from '../components/LoadingState'
 import { NoResults } from '../components/NoResults';
 import { Button } from '../components/Button';
 
-const FilmographyPage = () => {
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [filterArtist, setFilterArtist] = useState('All');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+type FilmWithArtist = Database['public']['Tables']['filmography']['Row'] & {
+    artist: { name: string } | null;
+};
+const Filmography = () => {
+    const [isFilterOpen, setIsFilterOpen] = useState(false)
+    const [filterArtist, setFilterArtist] = useState('All')
+    const [filterRole, setFilterRole] = useState('All')
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+    const [searchTerm, setSearchTerm] = useState('')
+    const [startDate, setStartDate] = useState('')
+    const [endDate, setEndDate] = useState('')
 
-    const { data, isLoading } = useFilmography(sortOrder);
+    const [films, setFilms] = useState<FilmWithArtist[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const { data: artists = [] } = useArtists();
-    const artistOptions = useMemo(() => {
-        return ['All', ...artists.map(a => a.name)];
-    }, [artists]);
+    useEffect(() => {
+        const fetchFilms = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('filmography')
+                    .select(`
+                    *,
+                    artist (name) 
+                `) // Join ตาราง artist เพื่อเอา name มาใช้
+                    .order('date', { ascending: false });
+                if (data) {
+                    console.log("Sample Data:", data[0]); // ดูว่า artist name มาในรูปแบบไหน
+                    setFilms(data);
+                }
+                if (error) throw error;
+                setFilms(data || []);
+            } catch (error) {
+                console.error('Error:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchFilms();
+    }, []);
 
     const handleReset = () => {
-        setFilterArtist('All');
-        setSearchTerm('');
-        setStartDate('');
-        setEndDate('');
-        setSortOrder('desc');
-    };
+        setFilterArtist('All')
+        setFilterRole('All')
+        setSearchTerm('')
+        setStartDate('')
+        setEndDate('')
+        setSortOrder('desc')
+    }
 
-    const filteredItems = data?.filter(item => {
-        const itemDate = new Date(item.date).getTime();
+    const filteredItems = films.filter(item => {
+        const itemDate = item.date ? new Date(item.date).getTime() : 0;
         const start = startDate ? new Date(startDate).getTime() : -Infinity;
         const end = endDate ? new Date(endDate).getTime() : Infinity;
-        const matchArtist = filterArtist === 'All' || item.artistName === filterArtist;
+        const matchArtist = filterArtist === 'All' ||
+            (item.artist && (
+                (typeof item.artist === 'object' && !Array.isArray(item.artist) && item.artist.name === filterArtist) ||
+                (Array.isArray(item.artist) && item.artist[0]?.name === filterArtist)
+            ));
+        const matchRole = filterRole === 'All' || item.status === filterRole;
         const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
         const matchDate = itemDate >= start && itemDate <= end;
 
-        return matchArtist && matchSearch && matchDate;
-    }) || [];
+        return matchArtist && matchRole && matchSearch && matchDate;
+    });
 
-    if (isLoading) return (<LoadingState />);
+    const sortedItems = [...filteredItems].sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
+    if (isLoading) return <LoadingState />
 
     return (
-        <div className="min-h-screen pb-20">
+        <div className="max-w-7xl mx-auto min-h-screen pb-20">
             <FilterHeader
                 title="Filmography" subtitle="Acting History"
                 isFilterOpen={isFilterOpen} setIsFilterOpen={setIsFilterOpen}
@@ -53,13 +91,16 @@ const FilmographyPage = () => {
                 endDate={endDate} setEndDate={setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: filterArtist, options: artistOptions, onSelect: setFilterArtist },
+                    { label: 'Artist', currentValue: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setFilterArtist },
+                    { label: 'Status', currentValue: filterRole, options: ['All', 'Main Role', 'Guest Role', 'Support Role'], onSelect: setFilterRole },
                 ]}
             />
-            <div className="max-w-7xl mx-auto px-4">
-                {filteredItems.length > 0 ? (
+
+            {/* Grid Layout */}
+            <div className="px-4">
+                {sortedItems.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
-                        {filteredItems.map(item => {
+                        {sortedItems.map((item) => {
                             return (
                                 <div
                                     key={item.id}
@@ -68,7 +109,7 @@ const FilmographyPage = () => {
                                     {/* Image Section */}
                                     <div className="relative aspect-4/5 overflow-hidden rounded-2xl bg-card-bg mb-4">
                                         <img
-                                            src={item.poster}
+                                            src={item.poster || ''}
                                             alt={item.title}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                         />
@@ -119,7 +160,7 @@ const FilmographyPage = () => {
                                             </Button>
                                             <Button
                                                 variant="primary"
-                                                href={item.rerun_link}
+                                                href={item.rerun_link || ''}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 size="sm"
@@ -130,7 +171,7 @@ const FilmographyPage = () => {
                                         </div>
                                     </div>
                                 </div>
-                            );
+                            )
                         })}
                     </div>
                 ) : (
@@ -141,4 +182,4 @@ const FilmographyPage = () => {
     );
 };
 
-export default FilmographyPage;
+export default Filmography;

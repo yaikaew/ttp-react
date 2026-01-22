@@ -78,7 +78,7 @@ export type Database = {
       }
       calendar: {
         Row: {
-          artist_id: number | null
+          artist_id: number
           date: string
           dmd: string | null
           hashtag: string | null
@@ -97,7 +97,7 @@ export type Database = {
           type: string | null
         }
         Insert: {
-          artist_id?: number | null
+          artist_id: number
           date: string
           dmd?: string | null
           hashtag?: string | null
@@ -116,7 +116,7 @@ export type Database = {
           type?: string | null
         }
         Update: {
-          artist_id?: number | null
+          artist_id?: number
           date?: string
           dmd?: string | null
           hashtag?: string | null
@@ -146,7 +146,7 @@ export type Database = {
       }
       contents: {
         Row: {
-          artist_id: number | null
+          artist_id: number
           date: string
           id: number
           img: string | null
@@ -155,7 +155,7 @@ export type Database = {
           type: string | null
         }
         Insert: {
-          artist_id?: number | null
+          artist_id: number
           date: string
           id?: number
           img?: string | null
@@ -164,7 +164,7 @@ export type Database = {
           type?: string | null
         }
         Update: {
-          artist_id?: number | null
+          artist_id?: number
           date?: string
           id?: number
           img?: string | null
@@ -346,7 +346,7 @@ export type Database = {
           {
             foreignKeyName: "filmographydetail_filmography_id_fkey"
             columns: ["filmography_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "filmography"
             referencedColumns: ["id"]
           },

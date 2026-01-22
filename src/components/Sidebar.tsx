@@ -1,79 +1,79 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react"
+import { Link, useLocation } from "react-router-dom"
 import {
-    Home,
+    Menu, X, Sparkles, Database, LogOut, Sun, Moon, Heart,
+    Home, BookOpen, Tag, Trophy,
     User,
+    Calendar,
     Film,
-    Heart,
-    Menu,
-    X,
-    Sparkles,
     Disc3,
     PlayCircle,
-    Calendar,
-    BookOpen,
-    Tag,
-    Video,
-    LogOut,
-    Database,
-    Trophy,
-    Sun,
-    Moon,
-} from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { useAuth } from '../hooks/useAuth';
+    Video
+} from "lucide-react"
+import { useAdminAuth } from "../hooks/useAdminAuth"
+import { supabase } from "../lib/supabaseClient"
+
+/* -------------------------------------------------------------------------- */
+/* Types & Constants                                                           */
+/* -------------------------------------------------------------------------- */
+
+const MENUS = [
+    { name: 'Home', path: '/', icon: Home },
+    { name: "Profile", path: "/profile", icon: User },
+    { name: "Calendar", path: "/calendar", icon: Calendar },
+    { name: "Filmography", path: "/filmography", icon: Film },
+    { name: "Discography", path: "/discography", icon: Disc3 },
+    { name: "Performance", path: "/performance", icon: PlayCircle },
+    { name: "Content", path: "/content", icon: Video },
+    { name: "Magazine", path: "/magazine", icon: BookOpen },
+    { name: 'Endorsements', path: '/endorsements', icon: Tag },
+    { name: 'Awards', path: '/awards', icon: Trophy },
+]
 
 const Sidebar = () => {
-    const location = useLocation();
-    const { user } = useAuth();
-    const [isOpen, setIsOpen] = useState(false);
+    const { user } = useAdminAuth()
+    const location = useLocation()
+    const [isOpen, setIsOpen] = useState(false)
 
-    /* ================= Theme ================= */
-    const [isDark, setIsDark] = useState(() => {
-        if (typeof window === 'undefined') return false;
-        return localStorage.getItem('theme') === 'dark';
-    });
+    // Theme Logic
+    const [isDark, setIsDark] = useState<boolean>(() => {
+        if (typeof window === "undefined") return false
+        return localStorage.getItem("theme") === "dark"
+    })
 
     useEffect(() => {
-        const html = document.documentElement;
+        const root = document.documentElement
         if (isDark) {
-            html.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
+            root.classList.add("dark")
+            localStorage.setItem("theme", "dark")
         } else {
-            html.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
+            root.classList.remove("dark")
+            localStorage.setItem("theme", "light")
         }
-    }, [isDark]);
+    }, [isDark])
 
-    const toggleTheme = () => setIsDark(v => !v);
+    const toggleTheme = () => setIsDark(!isDark)
 
-    /* ================= Logout ================= */
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        window.location.reload();
-    };
-
-    /* ================= Menu ================= */
-    const menuItems = [
-        { name: 'Home', path: '/', icon: Home },
-        { name: 'Profile', path: '/profile', icon: User },
-        { name: 'Calendar', path: '/calendar', icon: Calendar },
-        { name: 'Filmography', path: '/filmography', icon: Film },
-        { name: 'Discography', path: '/discography', icon: Disc3 },
-        { name: 'Performance', path: '/performance', icon: PlayCircle },
-        { name: 'Content', path: '/content', icon: Video },
-        { name: 'Magazines', path: '/magazines', icon: BookOpen },
-        { name: 'Endorsements', path: '/endorsements', icon: Tag },
-        { name: 'Awards', path: '/awards', icon: Trophy },
-    ];
+    // Handle Body Scroll & Resize
+    useEffect(() => {
+        document.body.style.overflow = isOpen ? "hidden" : ""
+    }, [isOpen])
 
     useEffect(() => {
-        document.body.style.overflow = isOpen ? 'hidden' : 'unset';
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
-    }, [isOpen]);
+        const onResize = () => {
+            if (window.innerWidth >= 1024) setIsOpen(false)
+        }
+        window.addEventListener("resize", onResize)
+        return () => window.removeEventListener("resize", onResize)
+    }, [])
 
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut()
+        if (error) alert(error.message)
+        else window.location.reload()
+    }
+
+    // Styles from Template
     const activeClass = 'bg-nav-bg-hover text-brand-primary';
     const inactiveClass = 'text-nav-text hover:bg-nav-bg-hover';
 
@@ -81,21 +81,20 @@ const Sidebar = () => {
         <>
             {/* ================= Mobile Header ================= */}
             <div
-                className="lg:hidden fixed top-0 w-full z-60 px-4 py-3 flex justify-between items-center
-        bg-brand-sidebar-bg/80 backdrop-blur-md
-        border-b border-brand-sidebar-border"
+                className="lg:hidden fixed top-0 w-full z-50 px-4 py-3 flex justify-between items-center
+                            bg-brand-sidebar-bg/80 backdrop-blur-md
+                            border-b border-brand-sidebar-border"
             >
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-brand-primary">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-brand-primary shadow-lg shadow-brand-primary/20">
                         <Sparkles size={16} className="text-white" />
                     </div>
-
                     <span className="font-black text-lg tracking-tighter">teeteepor</span>
                 </div>
 
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 rounded-xl bg-card-bg text-content-text-sub active:scale-95"
+                    className="p-2 rounded-xl bg-card-bg text-content-text-sub active:scale-95 transition-transform"
                 >
                     {isOpen ? <X size={22} /> : <Menu size={22} />}
                 </button>
@@ -104,18 +103,18 @@ const Sidebar = () => {
             {/* ================= Sidebar ================= */}
             <aside
                 className={`fixed inset-y-0 left-0 z-70 w-64
-        bg-brand-sidebar-bg
-        border-r border-brand-sidebar-border
-        transition-transform duration-500
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0`}
+                            bg-brand-sidebar-bg
+                            border-r border-brand-sidebar-border
+                            transition-transform duration-500
+                            ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+                            lg:translate-x-0`}
             >
                 <div className="flex flex-col h-full p-6 overflow-y-auto">
 
                     {/* ================= Logo + Theme ================= */}
                     <div className="flex items-center justify-between mb-10 px-2">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-brand-primary">
+                            <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-brand-primary shadow-lg shadow-brand-primary/20">
                                 <Sparkles size={20} className="text-white" />
                             </div>
 
@@ -129,12 +128,12 @@ const Sidebar = () => {
                             </div>
                         </div>
 
-                        {/* Theme Toggle (Desktop – beside logo) */}
+                        {/* Theme Toggle */}
                         <button
                             onClick={toggleTheme}
                             className="p-2 rounded-xl
-                bg-card-bg text-content-text-sub
-                hover:bg-nav-bg-hover transition"
+                            bg-card-bg text-content-text-sub
+                            hover:bg-nav-bg-hover transition"
                             title="Toggle theme"
                         >
                             {isDark ? <Sun size={16} /> : <Moon size={16} />}
@@ -143,7 +142,7 @@ const Sidebar = () => {
 
                     {/* ================= Navigation ================= */}
                     <nav className="flex-1 space-y-1.5">
-                        {menuItems.map(item => {
+                        {MENUS.map(item => {
                             const isActive = location.pathname === item.path;
                             return (
                                 <Link
@@ -151,8 +150,8 @@ const Sidebar = () => {
                                     to={item.path}
                                     onClick={() => setIsOpen(false)}
                                     className={`relative flex items-center justify-between px-4 py-3.5 rounded-2xl
-                    font-bold text-sm transition-all
-                    ${isActive ? activeClass : inactiveClass}`}
+                                                font-bold text-sm transition-all
+                                                ${isActive ? activeClass : inactiveClass}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <item.icon
@@ -176,11 +175,12 @@ const Sidebar = () => {
                             <div className="px-2">
                                 <Link
                                     to="/admin"
+                                    onClick={() => setIsOpen(false)}
                                     className="flex items-center gap-3 p-3 rounded-2xl border
-                    bg-brand-primary-light border-filter-border"
+                                    bg-brand-primary-light border-brand-sidebar-border hover:opacity-90 transition"
                                 >
                                     <div className="w-8 h-8 rounded-xl flex items-center justify-center
-                    bg-brand-primary text-white">
+                                    bg-brand-primary text-white shadow-sm">
                                         <Database size={16} />
                                     </div>
                                     <div className="min-w-0">
@@ -196,7 +196,7 @@ const Sidebar = () => {
                                 <button
                                     onClick={handleLogout}
                                     className="w-full mt-2 flex items-center gap-3 px-4 py-3 rounded-2xl
-                    text-xs font-bold text-red-500 hover:bg-red-500/10"
+                                    text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
                                 >
                                     <LogOut size={18} />
                                     Logout
@@ -209,16 +209,20 @@ const Sidebar = () => {
                             target="_blank"
                             rel="noreferrer"
                             className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold
-                text-content-text-muted
-                hover:text-brand-primary hover:bg-nav-bg-hover"
+                            text-content-text-muted
+                            hover:text-brand-primary hover:bg-nav-bg-hover transition-all"
                         >
-                            <Heart size={18} />
-                            © Made with love<br />By yorkor
+                            <Heart size={18} className="text-red-400" />
+                            <div className="leading-tight">
+                                © Made with love<br />
+                                <span className="opacity-70">By yorkor</span>
+                            </div>
                         </a>
                     </div>
                 </div>
             </aside>
 
+            {/* Overlay */}
             {isOpen && (
                 <div
                     className="fixed inset-0 z-65 lg:hidden bg-black/10 backdrop-blur-sm"
@@ -226,7 +230,7 @@ const Sidebar = () => {
                 />
             )}
         </>
-    );
-};
+    )
+}
 
-export default Sidebar;
+export default Sidebar
