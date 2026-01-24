@@ -28,7 +28,7 @@ const CalendarCard = ({ event, onClick }: CalendarCardProps) => {
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-60" />
                 <div className={`absolute top-4 left-4 ${dowTheme} text-white rounded-2xl p-2 min-w-[55px] flex flex-col items-center shadow-md backdrop-blur-sm`}>
-                    <span className="text-[10px] font-bold uppercase leading-none mb-1 opacity-90">{event.date ? new Date(event.date).toLocaleString('default', { month: 'short' }) : '-'}</span>
+                    <span className="text-[10px] font-bold uppercase leading-none mb-1 opacity-90">{event.date ? new Date(event.date).toLocaleString('en-US', { month: 'short' }) : '-'}</span>
                     <span className="text-2xl font-black leading-none">{event.date ? new Date(event.date).getDate() : '-'}</span>
                 </div>
             </div>
