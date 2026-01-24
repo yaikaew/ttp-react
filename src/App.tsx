@@ -17,6 +17,7 @@ import Discography from './pages/Discography';
 import HomePage from './pages/HomePage';
 import BrandEndorsementPage from './pages/BrandEndorsementPage';
 import AwardsPage from './pages/AwardsPage';
+import OutfitsPage from './pages/OutfitsPage';
 
 const ProtectedAdmin = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAdminAuth();
@@ -46,6 +47,7 @@ function App() {
 
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/outfits" element={<OutfitsPage />} />
           <Route path="/discography" element={<Discography />} />
           <Route path="/performance" element={<Performance />} />
           <Route path="/filmography" element={<Filmography />} />

@@ -21,6 +21,7 @@ const MENUS = [
     { name: 'Home', path: '/', icon: Home },
     { name: "Profile", path: "/profile", icon: User },
     { name: "Calendar", path: "/calendar", icon: Calendar },
+    { name: "Outfits", path: "/outfits", icon: Heart },
     { name: "Filmography", path: "/filmography", icon: Film },
     { name: "Discography", path: "/discography", icon: Disc3 },
     { name: "Performance", path: "/performance", icon: PlayCircle },

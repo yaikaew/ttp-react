@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAward } from '../hooks/useAward';
-import { useFilter } from '../hooks/useFilter'; // 1. Import hook เข้ามา
+import { useFilter } from '../hooks/useFilter';
 import FilterHeader from '../components/FilterHeader'
 import { LoadingState } from '../components/LoadingState'
 import { NoResults } from '../components/NoResults';
