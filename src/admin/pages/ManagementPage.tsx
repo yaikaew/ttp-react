@@ -186,6 +186,8 @@ const ManagementPage = () => {
                 template[col] = false;
             } else if (tableName === 'contents' && col === 'img') {
                 template[col] = 'https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg';
+            }else if (tableName === 'performance' && col === 'img') {
+                template[col] = 'https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg';
             } else {
                 template[col] = '';
             }
@@ -681,27 +683,17 @@ const ManagementPage = () => {
                                     entries.sort((a, b) => getSortScore(a[0]) - getSortScore(b[0]));
                                 } else if (tableName === 'filmographytrends') {
                                     const getSortScore = (key: string) => {
-                                        if (key === 'artist_id') return -2;
-                                        if (key === 'id') return -3;
-                                        if (key === 'filmography_id') return -1;
-
-                                        const match = key.match(/^(tag|engage|link|tagtrailer|engagetrailer|linktrailer|tagspecial|engagespecial|linkspecial)(\d+)?$/);
-                                        if (!match) return 999;
-
-                                        const prefix = match[1];
-                                        const numStr = match[2];
-
-                                        let base = 0;
-                                        if (prefix.includes('trailer')) {
-                                            base = 10;
-                                        } else if (prefix.includes('special')) {
-                                            base = 15;
-                                        } else if (numStr) {
-                                            base = (parseInt(numStr) * 10) + 10;
-                                        }
-                                        return base;
+                                        const order = ['id', 'filmography_id', 'episode', 'air_date', 'hashtag', 'posts', 'rank_th', 'rank_ww', 'location_count', 'source_link'];
+                                        const index = order.indexOf(key);
+                                        return index !== -1 ? index : 999;
                                     };
-
+                                    entries.sort((a, b) => getSortScore(a[0]) - getSortScore(b[0]));
+                                } else if (tableName === 'performance') {
+                                    const getSortScore = (key: string) => {
+                                        const order = ['id', 'artist_id', 'date', 'type', 'title', 'note', 'link', 'img'];
+                                        const index = order.indexOf(key);
+                                        return index !== -1 ? index : 999;
+                                    };
                                     entries.sort((a, b) => getSortScore(a[0]) - getSortScore(b[0]));
                                 } else {
                                     // For other tables, prioritize artist_id
