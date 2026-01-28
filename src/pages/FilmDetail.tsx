@@ -102,6 +102,7 @@ export const FilmDetail = () => {
 
     const btsIds = parseIds(detail?.bts_id);
     const highlightIds = parseIds(detail?.highlight_id);
+    const contentIds = parseIds(detail?.content_id);
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
@@ -321,6 +322,7 @@ export const FilmDetail = () => {
 
             {/* Videos (BTS & Highlights) */}
             <div className="px-6 py-12 space-y-20">
+                <VideoGrid ids={contentIds} title="Content" icon={Play} />
                 <VideoGrid ids={btsIds} title="Behind The Scenes" icon={Clapperboard} />
                 <VideoGrid ids={highlightIds} title="Highlights" icon={Tv} />
             </div>

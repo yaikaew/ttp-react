@@ -94,7 +94,6 @@ export type Database = {
           poster_url: string | null
           rerun_link: string | null
           time: string | null
-          type: string | null
         }
         Insert: {
           artist_id: number
@@ -113,7 +112,6 @@ export type Database = {
           poster_url?: string | null
           rerun_link?: string | null
           time?: string | null
-          type?: string | null
         }
         Update: {
           artist_id?: number
@@ -132,7 +130,6 @@ export type Database = {
           poster_url?: string | null
           rerun_link?: string | null
           time?: string | null
-          type?: string | null
         }
         Relationships: [
           {
@@ -311,6 +308,7 @@ export type Database = {
       filmographydetail: {
         Row: {
           bts_id: string | null
+          content_id: string | null
           filmography_id: number | null
           hashtag: string | null
           highlight_id: string | null
@@ -322,6 +320,7 @@ export type Database = {
         }
         Insert: {
           bts_id?: string | null
+          content_id?: string | null
           filmography_id?: number | null
           hashtag?: string | null
           highlight_id?: string | null
@@ -333,6 +332,7 @@ export type Database = {
         }
         Update: {
           bts_id?: string | null
+          content_id?: string | null
           filmography_id?: number | null
           hashtag?: string | null
           highlight_id?: string | null
