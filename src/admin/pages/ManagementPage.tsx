@@ -180,7 +180,7 @@ const ManagementPage = () => {
         const columnsToUse = data.length > 0 ? Object.keys(data[0]) : config?.importantColumns || [];
 
         columnsToUse.forEach(col => {
-            if (col === 'id' || col === 'artist' || col === 'filmography') return;
+            if (col === 'id' || col === 'artist' || col === 'filmography' || col === 'performance') return;
             const firstRowValue = data[0]?.[col];
             if (typeof firstRowValue === 'boolean') {
                 template[col] = false;
@@ -804,7 +804,7 @@ const ManagementPage = () => {
                                                             className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
                                                         >
                                                             <option value="">เลือกประเภทคอนเทนต์</option>
-                                                            {['Performance', 'Cover'].map(opt => (
+                                                            {['Performance', 'Cover', 'Music Video'].map(opt => (
                                                                 <option key={opt} value={opt}>{opt}</option>
                                                             ))}
                                                         </select>

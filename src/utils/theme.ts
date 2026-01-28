@@ -38,7 +38,7 @@ export const TYPE_THEME_MAP: Record<string, ThemeOption> = {
     text: "text-rose-600",
     border: "border-rose-100",
   },
-  MV: { bg: "bg-red-50", text: "text-red-600", border: "border-red-100" },
+  "Music Video": { bg: "bg-rose-50", text: "text-rose-600", border: "border-rose-100" },
   Performance: {
     bg: "bg-sky-50",
     text: "text-sky-600",

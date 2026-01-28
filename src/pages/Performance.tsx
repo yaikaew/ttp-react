@@ -33,7 +33,7 @@ const Performance = () => {
                 onReset={handleReset}
                 filterGroups={[
                     { label: 'Artist', currentValue: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
-                    { label: 'Type', currentValue: state.filterType, options: ['All', 'Performance', 'Cover'], onSelect: setters.setFilterType }
+                    { label: 'Type', currentValue: state.filterType, options: ['All', 'Performance', 'Cover', 'Music Video'], onSelect: setters.setFilterType }
                 ]}
             />
 
