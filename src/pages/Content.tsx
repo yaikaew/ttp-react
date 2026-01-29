@@ -33,7 +33,7 @@ const Content = () => {
                 onReset={handleReset}
                 filterGroups={[
                     { label: 'Artist', currentValue: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
-                    { label: 'Type', currentValue: state.filterType, options: ['All', 'Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Interview'], onSelect: setters.setFilterType }
+                    { label: 'Type', currentValue: state.filterType, options: ['All', 'Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Interview', 'Live Event'], onSelect: setters.setFilterType }
                 ]}
             />
 

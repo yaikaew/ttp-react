@@ -62,7 +62,7 @@ const AwardsPage = () => {
                             return (
                                 <div key={item.id} className={`group bg-card-bg rounded-4xl border transition-all duration-200 flex flex-col hover:-translate-y-1.5 border-brand-primary/30 shadow-lg shadow-brand-primary/5`}>
                                     {item.img && (
-                                        <div className="aspect-video overflow-hidden relative rounded-t-4xl">
+                                        <div className="aspect-square overflow-hidden relative rounded-t-4xl">
                                             <img
                                                 src={item.img}
                                                 alt={item.award}

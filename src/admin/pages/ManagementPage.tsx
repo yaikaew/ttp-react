@@ -839,7 +839,7 @@ const ManagementPage = () => {
                                                         >
                                                             <option value="">เลือกผลรางวัล</option>
                                                             {['Nominated', 'Received'].map(opt => (
-                                                                <option key={opt} value={opt}>{opt === 'Nominated' ? '🌟 Nominated (เข้าชิง)' : '🏆 Received (ได้รับ)'}</option>
+                                                                <option key={opt} value={opt}>{opt}</option>
                                                             ))}
                                                         </select>
                                                     </div>
