@@ -1,6 +1,7 @@
 import { MapPin, Clock } from 'lucide-react';
 import type { CalendarEvent } from './CalendarModal';
 import { getArtistTheme, getDOWTheme } from '../utils/theme';
+import { getTimeFromDatetimetz } from '../utils/calendarHelpers';
 
 interface CalendarCardProps {
     event: CalendarEvent;
@@ -13,7 +14,12 @@ const CalendarCard = ({ event, onClick }: CalendarCardProps) => {
         ? event.artist[0]?.name
         : event.artist?.name;
     const artistTheme = getArtistTheme(artistName || 'Unknown');
-    const dowTheme = getDOWTheme(event.date);
+
+    // ใช้ datetimetz เป็นหลัก
+    const eventDate = new Date(event.datetimetz);
+    const dowTheme = getDOWTheme(event.datetimetz);
+    // ดึงเวลาจาก datetimetz (ถ้าเป็น 00:00 จะคืน null = TBA)
+    const eventTime = getTimeFromDatetimetz(event.datetimetz);
 
     return (
         <div
@@ -28,8 +34,8 @@ const CalendarCard = ({ event, onClick }: CalendarCardProps) => {
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-60" />
                 <div className={`absolute top-4 left-4 ${dowTheme} text-white rounded-2xl p-2 min-w-[55px] flex flex-col items-center shadow-md backdrop-blur-sm`}>
-                    <span className="text-[10px] font-bold uppercase leading-none mb-1 opacity-90">{event.date ? new Date(event.date).toLocaleString('en-US', { month: 'short' }) : '-'}</span>
-                    <span className="text-2xl font-black leading-none">{event.date ? new Date(event.date).getDate() : '-'}</span>
+                    <span className="text-[10px] font-bold uppercase leading-none mb-1 opacity-90">{eventDate.toLocaleString('en-US', { month: 'short' })}</span>
+                    <span className="text-2xl font-black leading-none">{eventDate.getDate()}</span>
                 </div>
             </div>
 
@@ -44,7 +50,7 @@ const CalendarCard = ({ event, onClick }: CalendarCardProps) => {
                 </h3>
                 <div className="mt-auto flex flex-wrap gap-2">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 bg-page-bg rounded-full text-content-text-sub text-xs font-medium border border-brand-sidebar-border">
-                        <Clock className="w-3 h-3 text-brand-primary" /> {event.time || 'TBA'}
+                        <Clock className="w-3 h-3 text-brand-primary" /> {eventTime || 'TBA'}
                     </div>
                     {(event.location || event.live_platform) && (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-page-bg rounded-full text-content-text-sub text-xs font-medium border border-brand-sidebar-border">
@@ -53,7 +59,7 @@ const CalendarCard = ({ event, onClick }: CalendarCardProps) => {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

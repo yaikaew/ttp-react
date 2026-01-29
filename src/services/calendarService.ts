@@ -11,7 +11,7 @@ export const calendarService = {
         artist:artist_id ( name )
       `,
       )
-      .order("date", { ascending: true }); // เรียงจากวันที่ใกล้ที่สุดไปไกลที่สุด
+      .order("datetimetz", { ascending: true }); // เรียงตาม timestamp with time zone (วันที่และเวลา)
 
     if (error) throw error;
     return data || [];

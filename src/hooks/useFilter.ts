@@ -39,10 +39,14 @@ export const useFilter = <T extends FilterableItem>(initialData: T[]) => {
 
     return initialData
       .filter((item) => {
-        // 1. Filter Date
-        const itemDate = item.date ? new Date(item.date).getTime() : 0;
+        // 1. Filter Date - ใช้ datetimetz เป็นหลัก, fallback ไปใช้ date
+        const dateSource =
+          (item as unknown as { datetimetz?: string }).datetimetz || item.date;
+        const itemDate = dateSource ? new Date(dateSource).getTime() : 0;
         const start = startDate ? new Date(startDate).getTime() : -Infinity;
-        const end = endDate ? new Date(endDate).getTime() : Infinity;
+        const end = endDate
+          ? new Date(endDate + "T23:59:59").getTime()
+          : Infinity;
         const matchDate = itemDate >= start && itemDate <= end;
 
         // 2. Filter Artist (Type-safe check)
@@ -70,8 +74,13 @@ export const useFilter = <T extends FilterableItem>(initialData: T[]) => {
         return matchArtist && matchType && matchSearch && matchDate;
       })
       .sort((a, b) => {
-        const dateA = a.date ? new Date(a.date).getTime() : 0;
-        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        // ใช้ datetimetz เป็นหลัก, fallback ไปใช้ date
+        const dateSourceA =
+          (a as unknown as { datetimetz?: string }).datetimetz || a.date;
+        const dateSourceB =
+          (b as unknown as { datetimetz?: string }).datetimetz || b.date;
+        const dateA = dateSourceA ? new Date(dateSourceA).getTime() : 0;
+        const dateB = dateSourceB ? new Date(dateSourceB).getTime() : 0;
 
         if (dateA !== dateB) {
           return sortOrder === "desc" ? dateB - dateA : dateA - dateB;

@@ -21,7 +21,7 @@ export const TABLE_CONFIGS: Record<string, TableConfig> = {
   calendar: {
     id: "calendar",
     name: "ตารางงาน",
-    importantColumns: ["date", "name", "artist_id"],
+    importantColumns: ["datetimetz", "name", "artist_id"],
   },
   filmography: {
     id: "filmography",
@@ -60,12 +60,12 @@ export const TABLE_CONFIGS: Record<string, TableConfig> = {
   },
   filmographydetail: {
     id: "filmographydetail",
-    name: "รายละเอียดผลงาน (Deep Detail)",
+    name: "รายละเอียดผลงาน (Filmography Detail)",
     importantColumns: ["filmography_id", "hashtag"],
   },
   filmographytrends: {
     id: "filmographytrends",
-    name: "ผลงาน (Trends)",
+    name: "ผลงาน (Filmography Trends)",
     importantColumns: ["filmography_id", "episode", "air_date", "hashtag"],
   },
 };

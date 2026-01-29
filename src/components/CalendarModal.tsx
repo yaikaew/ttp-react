@@ -4,7 +4,7 @@ import { Button } from '../components/Button';
 import { IconButton } from '../components/IconButton';
 // ประกาศ Interface สำหรับใช้งานร่วมกัน
 export interface CalendarEvent {
-    date: string
+    datetimetz: string  // timestamp with time zone (ใช้แทน date และ time)
     dmd: string | null
     hashtag: string | null
     id: number
@@ -18,10 +18,11 @@ export interface CalendarEvent {
     outfit_img: string | null
     poster_url: string | null
     rerun_link: string | null
-    time: string | null
     type: string | null
     artist: { name: string } | { name: string }[] | null;
 }
+
+
 
 interface CalendarModalProps {
     event: CalendarEvent | null;
@@ -56,19 +57,23 @@ const generateGoogleUrl = (item: CalendarEvent) => {
     const title = encodeURIComponent(item.name);
     const loc = encodeURIComponent(item.location || '');
 
-    const dateStr = item.date.replace(/-/g, '');
-    let dates = "";
+    const dt = new Date(item.datetimetz);
+    const hours = dt.getHours();
+    const minutes = dt.getMinutes();
+    const hasTime = !(hours === 0 && minutes === 0);
 
-    if (item.time && item.time.trim() !== "") {
-        const cleanTime = item.time.replace(/[.:]/g, '');
-        const timeStr = `T${cleanTime}00`;
-        dates = `${dateStr}${timeStr}/${dateStr}${timeStr}`;
+    let dates = "";
+    if (hasTime) {
+        // มีเวลา - ใช้ timestamp โดยตรง
+        const dateStr = dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        dates = `${dateStr}/${dateStr}`;
     } else {
-        const startDate = new Date(item.date);
-        const endDate = new Date(item.date);
-        endDate.setDate(startDate.getDate() + 1);
-        const endDateStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
-        dates = `${dateStr}/${endDateStr}`;
+        // ไม่มีเวลา - ใช้เป็น all-day event
+        const endDate = new Date(dt);
+        endDate.setDate(dt.getDate() + 1);
+        const startStr = dt.toISOString().split('T')[0].replace(/-/g, '');
+        const endStr = endDate.toISOString().split('T')[0].replace(/-/g, '');
+        dates = `${startStr}/${endStr}`;
     }
 
     return `${baseUrl}&text=${title}&details=${desc}&location=${loc}&dates=${dates}&ctz=Asia/Bangkok`;
@@ -134,10 +139,17 @@ const CalendarModal = ({ event, onClose }: CalendarModalProps) => {
                                         Date & Time
                                     </p>
                                     <p className="text-content-text-main font-bold">
-                                        {new Date(event.date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                                        {new Date(event.datetimetz).toLocaleDateString('en-US', { dateStyle: 'medium' })}
                                     </p>
                                     <p className="text-sm text-content-text-sub">
-                                        {event.time || '-'}
+                                        {(() => {
+                                            const dt = new Date(event.datetimetz);
+                                            const hours = dt.getHours();
+                                            const minutes = dt.getMinutes();
+                                            // ถ้าเวลาเป็น 00:00 ถือว่าไม่มีเวลา (TBA)
+                                            if (hours === 0 && minutes === 0) return 'TBA';
+                                            return dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                                        })()}
                                     </p>
                                 </div>
                             </div>

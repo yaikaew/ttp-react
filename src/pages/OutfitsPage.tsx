@@ -49,15 +49,15 @@ const OutfitsPage = () => {
 
                                     <div className="p-3 flex flex-col items-center text-center space-y-0.5">
                                         <div className="text-[9px] font-black text-content-text-muted uppercase tracking-[0.2em]">
-                                            {item.date.replace(/-/g, '')}
+                                            {new Date(item.datetimetz).toISOString().split('T')[0].replace(/-/g, '')}
                                         </div>
                                         <a
-                                            href={`https://x.com/search?q=${encodeURIComponent(item.tag)}&src=typed_query&f=top`}
+                                            href={`https://x.com/search?q=${encodeURIComponent(item.hashtag)}&src=typed_query&f=top`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="text-[12px] font-bold text-brand-primary hover:text-brand-primary-hover transition-colors duration-200 truncate max-w-full px-2"
                                         >
-                                            {item.hashtag || item.keyword }
+                                            {item.hashtag || item.keyword}
                                         </a>
                                     </div>
                                 </div>

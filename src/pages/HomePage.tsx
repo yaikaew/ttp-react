@@ -5,6 +5,7 @@ import { useCalendar } from '../hooks/useCalendar';
 import { useAdminAuth } from "../hooks/useAdminAuth";
 import { supabase } from "../lib/supabaseClient";
 import { LoadingState } from "../components/LoadingState";
+import { getTimeFromDatetimetz } from "../utils/calendarHelpers";
 
 const RECOMMENDED_LIST = [
     {
@@ -44,9 +45,17 @@ const HomePage = () => {
 
     const upcomingEvents = useMemo(() => {
         if (!schedule) return [];
-        const today = new Date().setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayTime = today.getTime();
+
         return schedule
-            .filter((item) => new Date(item.date).setHours(0, 0, 0, 0) >= today)
+            .filter((item) => {
+                if (!item.datetimetz) return false;
+                const itemDate = new Date(item.datetimetz);
+                itemDate.setHours(0, 0, 0, 0);
+                return itemDate.getTime() >= todayTime;
+            })
             .slice(0, 3);
     }, [schedule]);
 
@@ -188,7 +197,6 @@ const HomePage = () => {
                                                 ${idx === 0 ? "ring-4 ring-brand-primary/10" : ""}`}
                                 >
                                     <div className="flex flex-col md:flex-row md:items-center gap-6">
-                                        {/* Date */}
                                         <div
                                             className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center
                                                 font-black shrink-0 border
@@ -198,12 +206,12 @@ const HomePage = () => {
                                                 }`}
                                         >
                                             <span className="text-[10px] uppercase opacity-80">
-                                                {new Date(item.date).toLocaleString("en-US", {
+                                                {new Date(item.datetimetz).toLocaleString("en-US", {
                                                     month: "short",
                                                 })}
                                             </span>
                                             <span className="text-2xl leading-none">
-                                                {new Date(item.date).getDate()}
+                                                {new Date(item.datetimetz).getDate()}
                                             </span>
                                         </div>
 
@@ -240,7 +248,7 @@ const HomePage = () => {
                                             <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 text-[11px] font-bold text-content-text-muted">
                                                 <div className="flex items-center gap-2">
                                                     <Clock className="w-3.5 h-3.5 text-brand-primary" />
-                                                    {item.time || "TBA"}
+                                                    {getTimeFromDatetimetz(item.datetimetz) || "TBA"}
                                                 </div>
 
                                                 {item.location && (

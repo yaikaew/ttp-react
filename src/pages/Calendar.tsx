@@ -25,15 +25,25 @@ const Calendar = () => {
 
     // --- LOGIC 1: FILTERING ---
     const filteredItems = (schedule || []).filter(item => {
-        const itemDateObj = new Date(item.date);
-        const itemTime = itemDateObj.getTime();
-        const nowTime = new Date().setHours(0, 0, 0, 0);
+        // ใช้ datetimetz เป็นหลัก
+        if (!item.datetimetz) return false; // ถ้าไม่มี datetimetz ให้ข้าม
+
+        const itemDateObj = new Date(item.datetimetz);
+        // สร้าง date object สำหรับวันนี้เวลา 00:00:00
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const nowTime = today.getTime();
+
+        // เปรียบเทียบเฉพาะวันที่ (ไม่รวมเวลา) สำหรับ upcoming check
+        const itemDateOnly = new Date(itemDateObj);
+        itemDateOnly.setHours(0, 0, 0, 0);
+        const itemTime = itemDateOnly.getTime();
 
         const isDateFiltered = startDate !== '' || endDate !== '';
         const matchUpcoming = isDateFiltered ? true : itemTime >= nowTime;
 
         const start = startDate ? new Date(startDate).getTime() : -Infinity;
-        const end = endDate ? new Date(endDate).getTime() : Infinity;
+        const end = endDate ? new Date(endDate + 'T23:59:59').getTime() : Infinity;
 
         const artistName = Array.isArray(item.artist) ? item.artist[0]?.name : item.artist?.name;
         const matchArtist = filterArtist === 'All' || artistName === filterArtist;
@@ -44,15 +54,16 @@ const Calendar = () => {
     });
 
     const sortedItems = [...filteredItems].sort((a, b) => {
-        const dateA = a.date ? new Date(a.date).getTime() : 0;
-        const dateB = b.date ? new Date(b.date).getTime() : 0;
+        // ใช้ datetimetz เป็นหลัก
+        const dateA = new Date(a.datetimetz).getTime();
+        const dateB = new Date(b.datetimetz).getTime();
         return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
 
     // --- LOGIC 2: GROUPING BY MONTH ---
     const groupedItems: { [key: string]: typeof sortedItems } = {};
     sortedItems.forEach(item => {
-        const date = new Date(item.date);
+        const date = new Date(item.datetimetz);
         const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
         if (!groupedItems[monthYear]) groupedItems[monthYear] = [];
         groupedItems[monthYear].push(item);

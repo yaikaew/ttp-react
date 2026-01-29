@@ -79,7 +79,7 @@ export type Database = {
       calendar: {
         Row: {
           artist_id: number
-          date: string
+          datetimetz: string
           dmd: string | null
           hashtag: string | null
           id: number
@@ -93,11 +93,10 @@ export type Database = {
           outfit_img: string | null
           poster_url: string | null
           rerun_link: string | null
-          time: string | null
         }
         Insert: {
           artist_id: number
-          date: string
+          datetimetz: string
           dmd?: string | null
           hashtag?: string | null
           id?: number
@@ -111,11 +110,10 @@ export type Database = {
           outfit_img?: string | null
           poster_url?: string | null
           rerun_link?: string | null
-          time?: string | null
         }
         Update: {
           artist_id?: number
-          date?: string
+          datetimetz?: string
           dmd?: string | null
           hashtag?: string | null
           id?: number
@@ -129,7 +127,6 @@ export type Database = {
           outfit_img?: string | null
           poster_url?: string | null
           rerun_link?: string | null
-          time?: string | null
         }
         Relationships: [
           {

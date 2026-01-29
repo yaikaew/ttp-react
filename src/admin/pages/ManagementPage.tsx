@@ -77,7 +77,11 @@ const ManagementPage = () => {
             const dateTables = ['filmography', 'discography', 'calendar', 'performance', 'magazine', 'contents'];
             const isDateTable = tableName && dateTables.includes(tableName);
 
-            if (isDateTable) {
+            if (tableName === 'calendar') {
+                // Calendar ใช้ datetimetz เป็นหลัก
+                query = query.order('datetimetz', { ascending: sortOrder === 'asc', nullsFirst: false });
+                query = query.order('id', { ascending: sortOrder === 'asc' });
+            } else if (isDateTable) {
                 query = query.order('date', { ascending: sortOrder === 'asc', nullsFirst: false });
                 query = query.order('id', { ascending: sortOrder === 'asc' });
             } else {
@@ -186,7 +190,7 @@ const ManagementPage = () => {
                 template[col] = false;
             } else if (tableName === 'contents' && col === 'img') {
                 template[col] = 'https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg';
-            }else if (tableName === 'performance' && col === 'img') {
+            } else if (tableName === 'performance' && col === 'img') {
                 template[col] = 'https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg';
             } else {
                 template[col] = '';
@@ -288,6 +292,24 @@ const ManagementPage = () => {
             return (
                 <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-bold whitespace-nowrap">
                     {title}
+                </span>
+            );
+        }
+
+        // แสดง datetimetz เป็น timezone +7
+        if (col === 'datetimetz' && row[col]) {
+            const dt = new Date(row[col] as string);
+            const formatted = dt.toLocaleString('th-TH', {
+                timeZone: 'Asia/Bangkok',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            return (
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold whitespace-nowrap">
+                    {formatted}
                 </span>
             );
         }
@@ -681,6 +703,13 @@ const ManagementPage = () => {
                                     };
 
                                     entries.sort((a, b) => getSortScore(a[0]) - getSortScore(b[0]));
+                                } else if (tableName === 'calendar') {
+                                    const getSortScore = (key: string) => {
+                                        const order = ['artist_id', 'datetimetz', 'name', 'location', 'live_platform', 'poster_url', 'keyword', 'hashtag', 'info_link', 'rerun_link', 'note', 'dmd', 'outfit', 'outfit_img'];
+                                        const index = order.indexOf(key);
+                                        return index !== -1 ? index : 999;
+                                    };
+                                    entries.sort((a, b) => getSortScore(a[0]) - getSortScore(b[0]));
                                 } else if (tableName === 'filmographytrends') {
                                     const getSortScore = (key: string) => {
                                         const order = ['id', 'filmography_id', 'episode', 'air_date', 'hashtag', 'posts', 'rank_th', 'rank_ww', 'location_count', 'source_link'];
@@ -814,6 +843,35 @@ const ManagementPage = () => {
                                                             ))}
                                                         </select>
                                                     </div>
+                                                ) : key === 'datetimetz' ? (
+                                                    // Input สำหรับ datetimetz ใช้ datetime-local
+                                                    <div className="relative group">
+                                                        <input
+                                                            type="datetime-local"
+                                                            value={(() => {
+                                                                if (!value) return '';
+                                                                const dt = new Date(value as string);
+                                                                // แปลงเป็น local time format สำหรับ datetime-local input
+                                                                const year = dt.getFullYear();
+                                                                const month = String(dt.getMonth() + 1).padStart(2, '0');
+                                                                const day = String(dt.getDate()).padStart(2, '0');
+                                                                const hours = String(dt.getHours()).padStart(2, '0');
+                                                                const minutes = String(dt.getMinutes()).padStart(2, '0');
+                                                                return `${year}-${month}-${day}T${hours}:${minutes}`;
+                                                            })()}
+                                                            onChange={(e) => {
+                                                                // แปลงค่าจาก datetime-local เป็น ISO string พร้อม timezone
+                                                                if (e.target.value) {
+                                                                    const localDate = new Date(e.target.value);
+                                                                    handleInputChange(key, localDate.toISOString());
+                                                                } else {
+                                                                    handleInputChange(key, null);
+                                                                }
+                                                            }}
+                                                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-bold text-slate-700"
+                                                        />
+                                                        <p className="text-xs text-slate-400 mt-1 ml-1">เวลาจะถูกบันทึกเป็น timezone +7 (Bangkok)</p>
+                                                    </div>
                                                 ) : isDate ? (
                                                     <div className="relative group">
                                                         <input
@@ -836,7 +894,7 @@ const ManagementPage = () => {
                                                             disabled={isId}
                                                             rows={isImageUrl || key === 'description' ? 3 : 1}
                                                             className={`w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium text-slate-700 ${isId ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
-                                                            placeholder={`ระบุ ${key}...`}
+                                                            placeholder={`ระบุ ${key}`}
                                                         />
                                                     </div>
                                                 )}
