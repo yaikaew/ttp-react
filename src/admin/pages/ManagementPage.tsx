@@ -57,7 +57,7 @@ const ManagementPage = () => {
             let selectStr = '*';
 
             // Check if table has artist relation
-            const tablesWithArtist = ['calendar', 'filmography', 'discography', 'performance', 'magazine', 'contents', 'awards'];
+            const tablesWithArtist = ['calendar', 'filmography', 'discography', 'performance', 'magazines', 'contents', 'awards'];
             // Check if table has filmography relation
             const tablesWithFilm = ['filmographydetail', 'filmographytrends'];
 
@@ -74,7 +74,7 @@ const ManagementPage = () => {
                 .select(selectStr);
 
             // Explicit list of tables that have a 'date' column for sorting
-            const dateTables = ['filmography', 'discography', 'calendar', 'performance', 'magazine', 'contents'];
+            const dateTables = ['filmography', 'discography', 'calendar', 'performance', 'magazines', 'contents'];
             const isDateTable = tableName && dateTables.includes(tableName);
 
             if (tableName === 'calendar') {
@@ -221,10 +221,11 @@ const ManagementPage = () => {
         const matchesArtist = !filterArtist || String(item.artist_id) === filterArtist;
 
         let matchesDate = true;
-        const itemDate = item.date as string;
-        if (itemDate) {
-            if (filterStartDate && itemDate < filterStartDate) matchesDate = false;
-            if (filterEndDate && itemDate > filterEndDate) matchesDate = false;
+        const itemDateValue = (item.datetimetz || item.date) as string;
+        if (itemDateValue) {
+            const itemDateOnly = itemDateValue.includes('T') ? itemDateValue.split('T')[0] : itemDateValue;
+            if (filterStartDate && itemDateOnly < filterStartDate) matchesDate = false;
+            if (filterEndDate && itemDateOnly > filterEndDate) matchesDate = false;
         } else if (filterStartDate || filterEndDate) {
             matchesDate = false;
         }
@@ -518,8 +519,8 @@ const ManagementPage = () => {
                         <div className="grid grid-cols-1 gap-4 md:hidden">
                             {filteredData.map((row) => {
                                 const isToday = tableName === 'calendar' &&
-                                    typeof row.date === 'string' &&
-                                    new Date(row.date).toDateString() === new Date().toDateString();
+                                    typeof row.datetimetz === 'string' &&
+                                    new Date(row.datetimetz).toDateString() === new Date().toDateString();
 
                                 const visibleCols = getVisibleColumns();
                                 const nameCol = visibleCols.find(col => ['name', 'title', 'song', 'event', 'hashtag'].includes(col)) || visibleCols[0];
@@ -539,7 +540,19 @@ const ManagementPage = () => {
                                                     <span className="px-1.5 py-0.5 bg-red-600 text-white text-[8px] font-black rounded uppercase animate-pulse">Today</span>
                                                 )}
                                                 {dateCol && !!row[dateCol] && (
-                                                    <span className="text-[10px] font-bold text-slate-400">{String(row[dateCol])}</span>
+                                                    <span className="text-[10px] font-bold text-slate-400">
+                                                        {dateCol === 'datetimetz'
+                                                            ? new Date(row[dateCol] as string).toLocaleString('th-TH', {
+                                                                timeZone: 'Asia/Bangkok',
+                                                                year: 'numeric',
+                                                                month: '2-digit',
+                                                                day: '2-digit',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })
+                                                            : String(row[dateCol])
+                                                        }
+                                                    </span>
                                                 )}
                                             </div>
                                             {artistCol && !!row.artist && (
@@ -602,8 +615,8 @@ const ManagementPage = () => {
                                     <tbody className="divide-y divide-slate-50">
                                         {filteredData.map((row) => {
                                             const isToday = tableName === 'calendar' &&
-                                                typeof row.date === 'string' &&
-                                                new Date(row.date).toDateString() === new Date().toDateString();
+                                                typeof row.datetimetz === 'string' &&
+                                                new Date(row.datetimetz).toDateString() === new Date().toDateString();
 
                                             return (
                                                 <tr
