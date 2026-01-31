@@ -307,6 +307,7 @@ export type Database = {
           bts_id: string | null
           content_id: string | null
           filmography_id: number | null
+          fullep_id: string | null
           hashtag: string | null
           highlight_id: string | null
           id: number
@@ -319,6 +320,7 @@ export type Database = {
           bts_id?: string | null
           content_id?: string | null
           filmography_id?: number | null
+          fullep_id?: string | null
           hashtag?: string | null
           highlight_id?: string | null
           id?: number
@@ -331,6 +333,7 @@ export type Database = {
           bts_id?: string | null
           content_id?: string | null
           filmography_id?: number | null
+          fullep_id?: string | null
           hashtag?: string | null
           highlight_id?: string | null
           id?: number
