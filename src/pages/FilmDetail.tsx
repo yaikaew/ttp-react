@@ -105,6 +105,10 @@ export const FilmDetail = () => {
     const contentIds = parseIds(detail?.content_id);
     const fullEpIds = parseIds(detail?.fullep_id);
 
+    const sortedTrends = film.filmographytrends ? [...film.filmographytrends].sort((a, b) =>
+        new Date(a.air_date || '').getTime() - new Date(b.air_date || '').getTime()
+    ) : [];
+
     return (
         <div className="max-w-7xl mx-auto pb-20">
             <div className="border-b border-card-border">
@@ -231,13 +235,13 @@ export const FilmDetail = () => {
             </div>
 
             {/* Trend Statistics */}
-            {film.filmographytrends?.length > 0 && (
+            {sortedTrends.length > 0 && (
                 <div className="px-6 py-12">
                     <SectionHeader icon={TrendingUp} title="Trend Summary" subtitle="X Engagement Metrics" />
                     <div className="space-y-4">
                         {/* Mobile View - Card Layout */}
                         <div className="block md:hidden space-y-4">
-                            {film.filmographytrends?.map((trend: Tables<'filmographytrends'>) => (
+                            {sortedTrends.map((trend: Tables<'filmographytrends'>) => (
                                 <div key={trend.id}
                                     onClick={() => trend.source_link && window.open(trend.source_link, '_blank', 'noopener,noreferrer')}
                                     className={`bg-card-bg p-5 rounded-3xl border border-card-border shadow-sm active:scale-[0.98] transition-all ${trend.source_link ? 'cursor-pointer' : ''}`}
@@ -299,7 +303,7 @@ export const FilmDetail = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-card-border">
-                                    {film.filmographytrends?.map((trend: Tables<'filmographytrends'>) => (
+                                    {sortedTrends.map((trend: Tables<'filmographytrends'>) => (
                                         <tr key={trend.id}
                                             onClick={() => trend.source_link && window.open(trend.source_link, '_blank', 'noopener,noreferrer')}
                                             className={`transition-colors ${trend.source_link ? 'cursor-pointer hover:bg-brand-primary/5' : ''}`}
