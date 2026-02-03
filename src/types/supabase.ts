@@ -311,6 +311,7 @@ export type Database = {
           hashtag: string | null
           highlight_id: string | null
           id: number
+          ost_id: string | null
           por_img: string | null
           synopsis: string | null
           teetee_img: string | null
@@ -324,6 +325,7 @@ export type Database = {
           hashtag?: string | null
           highlight_id?: string | null
           id?: number
+          ost_id?: string | null
           por_img?: string | null
           synopsis?: string | null
           teetee_img?: string | null
@@ -337,6 +339,7 @@ export type Database = {
           hashtag?: string | null
           highlight_id?: string | null
           id?: number
+          ost_id?: string | null
           por_img?: string | null
           synopsis?: string | null
           teetee_img?: string | null
@@ -354,7 +357,7 @@ export type Database = {
       }
       filmographytrends: {
         Row: {
-          air_date: string | null
+          air_date: string
           episode: string | null
           filmography_id: number
           hashtag: string | null
@@ -366,7 +369,7 @@ export type Database = {
           source_link: string | null
         }
         Insert: {
-          air_date?: string | null
+          air_date: string
           episode?: string | null
           filmography_id: number
           hashtag?: string | null
@@ -378,7 +381,7 @@ export type Database = {
           source_link?: string | null
         }
         Update: {
-          air_date?: string | null
+          air_date?: string
           episode?: string | null
           filmography_id?: number
           hashtag?: string | null

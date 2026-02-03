@@ -104,6 +104,7 @@ export const FilmDetail = () => {
     const highlightIds = parseIds(detail?.highlight_id);
     const contentIds = parseIds(detail?.content_id);
     const fullEpIds = parseIds(detail?.fullep_id);
+    const ostIds = parseIds(detail?.ost_id);
 
     const sortedTrends = film.filmographytrends ? [...film.filmographytrends].sort((a, b) =>
         new Date(a.air_date || '').getTime() - new Date(b.air_date || '').getTime()
@@ -251,7 +252,7 @@ export const FilmDetail = () => {
                                             {trend.episode}
                                         </div>
                                         <div className="text-[11px] font-bold text-content-text-muted uppercase tracking-wider">
-                                            {new Date(trend.air_date || '').toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                                            {new Date(trend.air_date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
                                         </div>
                                     </div>
                                     <div className="space-y-4">
@@ -310,11 +311,11 @@ export const FilmDetail = () => {
                                         >
                                             <td className="px-6 py-4 text-center font-bold text-content-text-main">{trend.episode}</td>
                                             <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap">
-                                                {new Date(trend.air_date || '').toLocaleDateString('en-US', { dateStyle: 'medium' })}
+                                                {new Date(trend.air_date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
                                             </td>
                                             <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-pre-line leading-relaxed">{trend.hashtag}</td>
                                             <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-pre-line leading-relaxed">{trend.posts}</td>
-                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap">{trend.rank_th} / {trend.rank_ww}</td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap">{trend.rank_th || "-"} / {trend.rank_ww || "-"}</td>
                                             <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold">{trend.location_count}</td>
                                         </tr>
                                     ))}
@@ -327,6 +328,7 @@ export const FilmDetail = () => {
 
             {/* Videos (BTS & Highlights) */}
             <div className="px-6 py-12 space-y-20">
+                <VideoGrid ids={ostIds} title="Original Soundtrack" icon={Star} />
                 <VideoGrid ids={fullEpIds} title="Full Episode" icon={PlaySquare} />
                 <VideoGrid ids={contentIds} title="Content" icon={Play} />
                 <VideoGrid ids={btsIds} title="Behind The Scenes" icon={Clapperboard} />
