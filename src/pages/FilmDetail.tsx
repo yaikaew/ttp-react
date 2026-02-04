@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFilmData } from '../hooks/useFilmData';
-import { Film, Play, ArrowLeft, Youtube, Star, BookOpen, TrendingUp, Clapperboard, Tv, PlaySquare } from 'lucide-react';
+import { Film, Play, ArrowLeft, Youtube, Star, BookOpen, TrendingUp, Clapperboard, Tv, PlaySquare, Heart } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { LoadingState } from '../components/LoadingState';
 import type { Tables } from '../types/supabase';
@@ -114,6 +114,7 @@ export const FilmDetail = () => {
     const contentIds = parseIds(detail?.content_id);
     const fullEpIds = parseIds(detail?.fullep_id);
     const ostIds = parseIds(detail?.ost_id);
+    const reactIds = parseIds(detail?.reaction_id);
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
@@ -335,6 +336,7 @@ export const FilmDetail = () => {
             <div className="px-6 py-12 space-y-20">
                 <VideoGrid ids={ostIds} title="Original Soundtrack" icon={Star} />
                 <VideoGrid ids={fullEpIds} title="Full Episode" icon={PlaySquare} />
+                <VideoGrid ids={reactIds} title="Reactions" icon={Heart} />
                 <VideoGrid ids={contentIds} title="Content" icon={Play} />
                 <VideoGrid ids={btsIds} title="Behind The Scenes" icon={Clapperboard} />
                 <VideoGrid ids={highlightIds} title="Highlights" icon={Tv} />

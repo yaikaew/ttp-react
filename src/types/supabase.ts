@@ -313,6 +313,7 @@ export type Database = {
           id: number
           ost_id: string | null
           por_img: string | null
+          reaction_id: string | null
           synopsis: string | null
           teetee_img: string | null
           trailer_id: string | null
@@ -327,6 +328,7 @@ export type Database = {
           id?: number
           ost_id?: string | null
           por_img?: string | null
+          reaction_id?: string | null
           synopsis?: string | null
           teetee_img?: string | null
           trailer_id?: string | null
@@ -341,6 +343,7 @@ export type Database = {
           id?: number
           ost_id?: string | null
           por_img?: string | null
+          reaction_id?: string | null
           synopsis?: string | null
           teetee_img?: string | null
           trailer_id?: string | null
