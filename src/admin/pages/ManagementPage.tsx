@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { TABLE_CONFIGS } from '../config/tableConfig';
@@ -31,6 +31,14 @@ const ManagementPage = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Performance knobs
+    const ROW_LIMIT = 1000; // protect UI from unbounded table loads
+    const MAX_EXPORT_ROWS = 5000; // safeguard for CSV exports
+
+    // debounced search to avoid excessive renders / network work
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+    const [isPartialResults, setIsPartialResults] = useState(false);
 
     // Filter states
     const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -89,10 +97,34 @@ const ManagementPage = () => {
                 query = query.order('id', { ascending: sortOrder === 'asc' });
             }
 
-            const { data: result, error: fetchError } = await query;
+            // Apply optional server-side search (only when meaningful) and a row limit to protect the UI
+            const hasActiveFilters = !!(filterArtist || filterStartDate || filterEndDate);
+            let execQuery: any = query;
+
+            if (debouncedSearchTerm && debouncedSearchTerm.length >= 2) {
+                const commonSearchCols = ['name', 'title', 'hashtag', 'award', 'issue', 'type'];
+                const searchable = (config?.importantColumns || []).filter(c => commonSearchCols.includes(c));
+                if (searchable.length > 0) {
+                    const orStr = searchable.map(c => `${c}.ilike.%${debouncedSearchTerm}%`).join(',');
+                    execQuery = execQuery.or(orStr);
+                }
+            }
+
+            if (!hasActiveFilters && (!debouncedSearchTerm || debouncedSearchTerm.length < 2)) {
+                execQuery = execQuery.limit(ROW_LIMIT);
+            }
+
+            // Run main query + small lookups in parallel to eliminate waterfalls
+            const [mainResp, artistResp, filmResp] = await Promise.all([
+                execQuery,
+                supabase.from('artist').select('id, name').order('name'),
+                supabase.from('filmography').select('id, title').order('title')
+            ]);
+
+            const { data: result, error: fetchError } = mainResp as { data: any; error: any };
 
             if (fetchError) {
-                // Fallback attempt if date sort fails
+                // Fallback attempt if date sort fails (preserve previous behavior)
                 const { data: fallbackResult, error: fallbackError } = await supabase
                     .from(tableName as unknown as keyof Database['public']['Tables'])
                     .select('*')
@@ -100,15 +132,15 @@ const ManagementPage = () => {
 
                 if (fallbackError) throw fallbackError;
                 setData((fallbackResult as unknown as Record<string, unknown>[]) || []);
+                setIsPartialResults(Array.isArray(fallbackResult) && (fallbackResult.length >= ROW_LIMIT));
             } else {
                 setData((result as unknown as Record<string, unknown>[]) || []);
+                setIsPartialResults(Array.isArray(result) && (result.length >= ROW_LIMIT));
             }
 
-            const { data: artistData } = await supabase.from('artist').select('id, name').order('name');
-            setArtists((artistData as { id: number, name: string }[]) || []);
-
-            const { data: filmData } = await supabase.from('filmography').select('id, title').order('title');
-            setFilmographies((filmData as { id: number, title: string }[]) || []);
+            // non-blocking: apply lookups if available
+            setArtists(((artistResp as any)?.data as { id: number, name: string }[]) || []);
+            setFilmographies(((filmResp as any)?.data as { id: number, title: string }[]) || []);
 
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการดึงข้อมูล');
@@ -120,7 +152,13 @@ const ManagementPage = () => {
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tableName, sortOrder]);
+    }, [tableName, sortOrder, debouncedSearchTerm]);
+
+    // debounce search input (reduce renders + network pressure)
+    useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearchTerm(searchTerm.trim()), 250);
+        return () => clearTimeout(t);
+    }, [searchTerm]);
 
     const handleDelete = async (e: React.MouseEvent, id: string | number) => {
         e.stopPropagation();
@@ -213,25 +251,38 @@ const ManagementPage = () => {
         setEditData(prev => ({ ...prev, [key]: value }));
     };
 
-    const filteredData = data.filter(item => {
-        const matchesSearch = Object.values(item).some(val =>
-            String(val).toLowerCase().includes(searchTerm.toLowerCase())
-        );
+    const filteredData = useMemo(() => {
+        const lowerSearch = (debouncedSearchTerm || '').toLowerCase();
+        return data.filter(item => {
+            // search primitives + joined fields
+            const matchesSearch = lowerSearch.length === 0 || Object.entries(item).some(([k, v]) => {
+                if (v == null) return false;
+                if (k === 'artist' && typeof v === 'object') {
+                    const name = Array.isArray(v) ? (v[0]?.name ?? '') : (v as any).name ?? '';
+                    return String(name).toLowerCase().includes(lowerSearch);
+                }
+                if (k === 'filmography' && typeof v === 'object') {
+                    const title = Array.isArray(v) ? (v[0]?.title ?? '') : (v as any).title ?? '';
+                    return String(title).toLowerCase().includes(lowerSearch);
+                }
+                return String(v).toLowerCase().includes(lowerSearch);
+            });
 
-        const matchesArtist = !filterArtist || String(item.artist_id) === filterArtist;
+            const matchesArtist = !filterArtist || String(item.artist_id) === filterArtist;
 
-        let matchesDate = true;
-        const itemDateValue = (item.datetimetz || item.date) as string;
-        if (itemDateValue) {
-            const itemDateOnly = itemDateValue.includes('T') ? itemDateValue.split('T')[0] : itemDateValue;
-            if (filterStartDate && itemDateOnly < filterStartDate) matchesDate = false;
-            if (filterEndDate && itemDateOnly > filterEndDate) matchesDate = false;
-        } else if (filterStartDate || filterEndDate) {
-            matchesDate = false;
-        }
+            let matchesDate = true;
+            const itemDateValue = (item.datetimetz || item.date) as string;
+            if (itemDateValue) {
+                const itemDateOnly = itemDateValue.includes('T') ? itemDateValue.split('T')[0] : itemDateValue;
+                if (filterStartDate && itemDateOnly < filterStartDate) matchesDate = false;
+                if (filterEndDate && itemDateOnly > filterEndDate) matchesDate = false;
+            } else if (filterStartDate || filterEndDate) {
+                matchesDate = false;
+            }
 
-        return matchesSearch && matchesArtist && matchesDate;
-    });
+            return matchesSearch && matchesArtist && matchesDate;
+        });
+    }, [data, debouncedSearchTerm, filterArtist, filterStartDate, filterEndDate]);
 
     const resetFilters = () => {
         setFilterArtist('');
@@ -242,8 +293,14 @@ const ManagementPage = () => {
     const handleDownloadCSV = () => {
         if (filteredData.length === 0) return;
 
+        if (filteredData.length > MAX_EXPORT_ROWS) {
+            if (!window.confirm(`ผลลัพธ์มีจำนวน ${filteredData.length} แถว — จะดาวน์โหลดเฉพาะ ${MAX_EXPORT_ROWS} แถวแรกหรือไม่?`)) return;
+        }
+
+        const exportRows = filteredData.slice(0, MAX_EXPORT_ROWS);
+
         // Get headers from the first row (excluding joined objects)
-        const headers = Object.keys(filteredData[0]).filter(k => k !== 'artist' && k !== 'filmography');
+        const headers = Object.keys(exportRows[0]).filter(k => k !== 'artist' && k !== 'filmography');
 
         // Header row
         const csvRows = [headers.join(',')];
@@ -275,6 +332,17 @@ const ManagementPage = () => {
         if (data.length > 0) return Object.keys(data[0]).filter(k => k !== 'artist' && k !== 'filmography');
         return [];
     };
+
+    const tableColumns = useMemo(() => {
+        const visible = getVisibleColumns();
+        return {
+            visible,
+            nameCol: visible.find(col => ['name', 'title', 'song', 'event', 'hashtag'].includes(col)) || visible[0],
+            artistCol: visible.find(col => col === 'artist_id'),
+            filmCol: visible.find(col => col === 'filmography_id'),
+            dateCol: visible.find(col => col.includes('date') || col === 'date'),
+        };
+    }, [data, config]);
 
     const renderCellValue = (row: Record<string, unknown>, col: string, isToday: boolean = false) => {
         if (col === 'artist_id' && row.artist) {
@@ -325,9 +393,10 @@ const ManagementPage = () => {
         }
 
         if (col === 'image_url' || (typeof value === 'string' && (value.startsWith('http') && (value.includes('.jpg') || value.includes('.png') || value.includes('.webp'))))) {
+            const altText = String((row as any).name ?? (row as any).title ?? col);
             return (
                 <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
-                    {value ? <img src={value as string} alt="" className="w-full h-full object-cover" /> : null}
+                    {value ? <img src={value as string} alt={altText} className="w-full h-full object-cover" /> : null}
                 </div>
             );
         }
@@ -489,6 +558,10 @@ const ManagementPage = () => {
                         </div>
                     </div>
                 )}
+
+                {isPartialResults && (
+                    <div className="text-sm text-amber-600 font-bold mt-2">ผลลัพธ์ถูกจำกัดไว้ที่ {ROW_LIMIT} แถว — กรุณาใช้การค้นหา (อย่างน้อย 2 ตัวอักษร) หรือกรองเพื่อหาข้อมูลที่ต้องการ</div>
+                )}
             </div>
 
             <div className="min-h-[400px]">
@@ -522,11 +595,7 @@ const ManagementPage = () => {
                                     typeof row.datetimetz === 'string' &&
                                     new Date(row.datetimetz).toDateString() === new Date().toDateString();
 
-                                const visibleCols = getVisibleColumns();
-                                const nameCol = visibleCols.find(col => ['name', 'title', 'song', 'event', 'hashtag'].includes(col)) || visibleCols[0];
-                                const artistCol = visibleCols.find(col => col === 'artist_id');
-                                const filmCol = visibleCols.find(col => col === 'filmography_id');
-                                const dateCol = visibleCols.find(col => col.includes('date') || col === 'date');
+                                const { nameCol, artistCol, filmCol, dateCol } = tableColumns;
 
                                 return (
                                     <div
@@ -633,6 +702,7 @@ const ManagementPage = () => {
                                                         <div className="flex items-center justify-end gap-2 transition-opacity">
                                                             <button
                                                                 onClick={() => handleEdit(row)}
+                                                                aria-label="แก้ไขรายการ"
                                                                 className="p-2 text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all"
                                                             >
                                                                 <Edit3 size={18} />
@@ -642,6 +712,7 @@ const ManagementPage = () => {
                                                                     e.stopPropagation();
                                                                     handleDelete(e, row.id as string | number);
                                                                 }}
+                                                                aria-label="ลบรายการ"
                                                                 className="p-2 text-red-500 bg-red-50 rounded-xl hover:bg-red-500 hover:text-white transition-all shadow-sm"
                                                             >
                                                                 <Trash2 size={18} />
@@ -682,6 +753,8 @@ const ManagementPage = () => {
                                     setIsDrawerOpen(false);
                                     document.body.style.overflow = "";
                                 }}
+                                aria-label="ปิด"
+                                title="ปิด"
                                 className="p-2 md:p-3 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-all border border-slate-100 shadow-sm shrink-0"
                             >
                                 <X size={24} />

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useFilmData } from '../hooks/useFilmData';
 import { Film, Play, ArrowLeft, Youtube, Star, BookOpen, TrendingUp, Clapperboard, Tv, PlaySquare } from 'lucide-react';
@@ -22,11 +23,11 @@ const SectionHeader = ({
             <h4 className="text-base font-black text-content-text-main leading-none">
                 {title}
             </h4>
-            {subtitle && (
+            {subtitle ? (
                 <p className="text-[11px] font-bold text-content-text-muted mt-1.5 leading-relaxed uppercase tracking-wider">
                     {subtitle}
                 </p>
-            )}
+            ) : null}
         </div>
     </div>
 );
@@ -76,6 +77,14 @@ export const FilmDetail = () => {
     const navigate = useNavigate();
     const { film, loading, error } = useFilmData(Number(id));
 
+    const trends = film?.filmographytrends;
+    const sortedTrends = React.useMemo(() => {
+        if (!trends) return [];
+        return [...trends].sort((a, b) =>
+            new Date(a.air_date || '').getTime() - new Date(b.air_date || '').getTime()
+        );
+    }, [trends]);
+
     if (loading) return <LoadingState />;
     if (error || !film) {
         return (
@@ -105,10 +114,6 @@ export const FilmDetail = () => {
     const contentIds = parseIds(detail?.content_id);
     const fullEpIds = parseIds(detail?.fullep_id);
     const ostIds = parseIds(detail?.ost_id);
-
-    const sortedTrends = film.filmographytrends ? [...film.filmographytrends].sort((a, b) =>
-        new Date(a.air_date || '').getTime() - new Date(b.air_date || '').getTime()
-    ) : [];
 
     return (
         <div className="max-w-7xl mx-auto pb-20">
@@ -161,7 +166,7 @@ export const FilmDetail = () => {
                             {/* Actions */}
                             <div className="flex flex-wrap gap-3">
 
-                                {detail?.hashtag && (
+                                {detail?.hashtag ? (
                                     <a
                                         href={`https://x.com/search?q=${encodeURIComponent(detail.hashtag)}`}
                                         target="_blank"
@@ -170,9 +175,9 @@ export const FilmDetail = () => {
                                     >
                                         {detail.hashtag}
                                     </a>
-                                )}
+                                ) : null}
 
-                                {film.rerun_link && (
+                                {film.rerun_link ? (
                                     <a
                                         href={film.rerun_link}
                                         target="_blank"
@@ -182,7 +187,7 @@ export const FilmDetail = () => {
                                         <Play size={14} fill="currentColor" />
                                         Watch Rerun
                                     </a>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     </div>
@@ -236,7 +241,7 @@ export const FilmDetail = () => {
             </div>
 
             {/* Trend Statistics */}
-            {sortedTrends.length > 0 && (
+            {sortedTrends.length > 0 ? (
                 <div className="px-6 py-12">
                     <SectionHeader icon={TrendingUp} title="Trend Summary" subtitle="X Engagement Metrics" />
                     <div className="space-y-4">
@@ -244,7 +249,7 @@ export const FilmDetail = () => {
                         <div className="block md:hidden space-y-4">
                             {sortedTrends.map((trend: Tables<'filmographytrends'>) => (
                                 <div key={trend.id}
-                                    onClick={() => trend.source_link && window.open(trend.source_link, '_blank', 'noopener,noreferrer')}
+                                    onClick={() => trend.source_link ? window.open(trend.source_link, '_blank', 'noopener,noreferrer') : null}
                                     className={`bg-card-bg p-5 rounded-3xl border border-card-border shadow-sm active:scale-[0.98] transition-all ${trend.source_link ? 'cursor-pointer' : ''}`}
                                 >
                                     <div className="flex justify-between items-start mb-4">
@@ -306,7 +311,7 @@ export const FilmDetail = () => {
                                 <tbody className="divide-y divide-card-border">
                                     {sortedTrends.map((trend: Tables<'filmographytrends'>) => (
                                         <tr key={trend.id}
-                                            onClick={() => trend.source_link && window.open(trend.source_link, '_blank', 'noopener,noreferrer')}
+                                            onClick={() => trend.source_link ? window.open(trend.source_link, '_blank', 'noopener,noreferrer') : null}
                                             className={`transition-colors ${trend.source_link ? 'cursor-pointer hover:bg-brand-primary/5' : ''}`}
                                         >
                                             <td className="px-6 py-4 text-center font-bold text-content-text-main">{trend.episode}</td>
@@ -324,7 +329,7 @@ export const FilmDetail = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            ) : null}
 
             {/* Videos (BTS & Highlights) */}
             <div className="px-6 py-12 space-y-20">
