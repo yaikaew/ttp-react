@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
 import FilterHeader from '../components/FilterHeader'
 import { LoadingState } from '../components/LoadingState'
@@ -23,51 +23,52 @@ const Calendar = () => {
         setFilterArtist('All'); setSearchTerm(''); setStartDate(''); setEndDate(''); setSortOrder('asc');
     }
 
-    // --- LOGIC 1: FILTERING ---
-    const filteredItems = (schedule || []).filter(item => {
-        // ใช้ datetimetz เป็นหลัก
-        if (!item.datetimetz) return false; // ถ้าไม่มี datetimetz ให้ข้าม
+    // --- LOGIC 1: FILTERING & SORTING ---
+    const sortedItems = useMemo(() => {
+        const filtered = (schedule || []).filter(item => {
+            if (!item.datetimetz) return false;
 
-        const itemDateObj = new Date(item.datetimetz);
-        // สร้าง date object สำหรับวันนี้เวลา 00:00:00
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const nowTime = today.getTime();
+            const itemDateObj = new Date(item.datetimetz);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const nowTime = today.getTime();
 
-        // เปรียบเทียบเฉพาะวันที่ (ไม่รวมเวลา) สำหรับ upcoming check
-        const itemDateOnly = new Date(itemDateObj);
-        itemDateOnly.setHours(0, 0, 0, 0);
-        const itemTime = itemDateOnly.getTime();
+            const itemDateOnly = new Date(itemDateObj);
+            itemDateOnly.setHours(0, 0, 0, 0);
+            const itemTime = itemDateOnly.getTime();
 
-        const isDateFiltered = startDate !== '' || endDate !== '';
-        const matchUpcoming = isDateFiltered ? true : itemTime >= nowTime;
+            const isDateFiltered = startDate !== '' || endDate !== '';
+            const matchUpcoming = isDateFiltered ? true : itemTime >= nowTime;
 
-        const start = startDate ? new Date(startDate).getTime() : -Infinity;
-        const end = endDate ? new Date(endDate + 'T23:59:59').getTime() : Infinity;
+            const start = startDate ? new Date(startDate).getTime() : -Infinity;
+            const end = endDate ? new Date(endDate + 'T23:59:59').getTime() : Infinity;
 
-        const artistName = Array.isArray(item.artist) ? item.artist[0]?.name : item.artist?.name;
-        const matchArtist = filterArtist === 'All' || artistName === filterArtist;
-        const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchDate = itemTime >= start && itemTime <= end;
+            const artistName = Array.isArray(item.artist) ? item.artist[0]?.name : item.artist?.name;
+            const matchArtist = filterArtist === 'All' || artistName === filterArtist;
+            const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchDate = itemTime >= start && itemTime <= end;
 
-        return matchUpcoming && matchArtist && matchSearch && matchDate;
-    });
+            return matchUpcoming && matchArtist && matchSearch && matchDate;
+        });
 
-    const sortedItems = [...filteredItems].sort((a, b) => {
-        // ใช้ datetimetz เป็นหลัก
-        const dateA = new Date(a.datetimetz).getTime();
-        const dateB = new Date(b.datetimetz).getTime();
-        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-    });
+        return [...filtered].sort((a, b) => {
+            const dateA = new Date(a.datetimetz).getTime();
+            const dateB = new Date(b.datetimetz).getTime();
+            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+    }, [schedule, filterArtist, searchTerm, startDate, endDate, sortOrder]);
 
     // --- LOGIC 2: GROUPING BY MONTH ---
-    const groupedItems: { [key: string]: typeof sortedItems } = {};
-    sortedItems.forEach(item => {
-        const date = new Date(item.datetimetz);
-        const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-        if (!groupedItems[monthYear]) groupedItems[monthYear] = [];
-        groupedItems[monthYear].push(item);
-    });
+    const groupedItems = useMemo(() => {
+        const groups: { [key: string]: typeof sortedItems } = {};
+        sortedItems.forEach((item) => {
+            const date = new Date(item.datetimetz);
+            const monthYear = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            if (!groups[monthYear]) groups[monthYear] = [];
+            groups[monthYear].push(item);
+        });
+        return groups;
+    }, [sortedItems]);
 
     if (loading) return <LoadingState />
 
@@ -98,11 +99,11 @@ const Calendar = () => {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                                {groupedItems[monthYear].map((event) => (
+                                {groupedItems[monthYear].map((event: CalendarEvent) => (
                                     <CalendarCard
                                         key={event.id}
                                         event={event}
-                                        onClick={(ev) => setSelectedEvent(ev)}
+                                        onClick={(ev: CalendarEvent) => setSelectedEvent(ev)}
                                     />
                                 ))}
                             </div>

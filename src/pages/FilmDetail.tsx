@@ -6,6 +6,9 @@ import type { LucideIcon } from 'lucide-react';
 import { LoadingState } from '../components/LoadingState';
 import type { Tables } from '../types/supabase';
 
+const parseIds = (input?: string | null) =>
+    input ? input.split(',').map((v) => v.trim()).filter(Boolean) : [];
+
 const SectionHeader = ({
     icon: Icon,
     title,
@@ -105,9 +108,6 @@ export const FilmDetail = () => {
     }
 
     const detail = film.filmographydetail;
-
-    const parseIds = (input?: string | null) =>
-        input ? input.split(',').map((v) => v.trim()).filter(Boolean) : [];
 
     const btsIds = parseIds(detail?.bts_id);
     const highlightIds = parseIds(detail?.highlight_id);
@@ -235,7 +235,7 @@ export const FilmDetail = () => {
                     <div className="relative overflow-hidden bg-card-bg p-8 md:p-12 rounded-[2.5rem] border border-card-border shadow-sm">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                         <p className="relative text-sm md:text-lg text-content-text-sub leading-relaxed whitespace-pre-line font-medium">
-                            {detail?.synopsis || "Coming soon..."}
+                            {detail?.synopsis || "Coming soon…"}
                         </p>
                     </div>
                 </div>
@@ -257,7 +257,7 @@ export const FilmDetail = () => {
                                         <div className="px-3 py-1 bg-brand-primary/10 text-brand-primary rounded-lg text-xs font-black">
                                             {trend.episode}
                                         </div>
-                                        <div className="text-[11px] font-bold text-content-text-muted uppercase tracking-wider">
+                                        <div className="text-[11px] font-bold text-content-text-muted uppercase tracking-wider tabular-nums">
                                             {new Date(trend.air_date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
                                         </div>
                                     </div>
@@ -274,7 +274,7 @@ export const FilmDetail = () => {
                                             {/* Posts: 30% (3/10) */}
                                             <div className="col-span-3">
                                                 <p className="text-[10px] font-black text-content-text-muted uppercase mb-1">Posts</p>
-                                                <p className="text-sm font-bold text-content-text-main whitespace-pre-line">
+                                                <p className="text-sm font-bold text-content-text-main whitespace-pre-line tabular-nums">
                                                     {trend.posts}
                                                 </p>
                                             </div>
@@ -282,13 +282,13 @@ export const FilmDetail = () => {
                                         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-card-border/50">
                                             <div>
                                                 <p className="text-[10px] font-black text-content-text-muted uppercase mb-1">Rank (TH/WW)</p>
-                                                <p className="text-sm font-bold text-content-text-main">
+                                                <p className="text-sm font-bold text-content-text-main tabular-nums">
                                                     {trend.rank_th} / {trend.rank_ww || '-'}
                                                 </p>
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black text-content-text-muted uppercase mb-1">Location Count</p>
-                                                <p className="text-sm font-bold text-content-text-main">{trend.location_count}</p>
+                                                <p className="text-sm font-bold text-content-text-main tabular-nums">{trend.location_count}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -316,13 +316,13 @@ export const FilmDetail = () => {
                                             className={`transition-colors ${trend.source_link ? 'cursor-pointer hover:bg-brand-primary/5' : ''}`}
                                         >
                                             <td className="px-6 py-4 text-center font-bold text-content-text-main">{trend.episode}</td>
-                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap">
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap tabular-nums">
                                                 {new Date(trend.air_date).toLocaleDateString('en-US', { dateStyle: 'medium' })}
                                             </td>
                                             <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-pre-line leading-relaxed">{trend.hashtag}</td>
-                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-pre-line leading-relaxed">{trend.posts}</td>
-                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap">{trend.rank_th || "-"} / {trend.rank_ww || "-"}</td>
-                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold">{trend.location_count}</td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-pre-line leading-relaxed tabular-nums">{trend.posts}</td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold whitespace-nowrap tabular-nums">{trend.rank_th || "-"} / {trend.rank_ww || "-"}</td>
+                                            <td className="px-6 py-4 text-center text-content-text-sub text-sm font-bold tabular-nums">{trend.location_count}</td>
                                         </tr>
                                     ))}
                                 </tbody>

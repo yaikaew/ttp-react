@@ -99,7 +99,7 @@ const ManagementPage = () => {
 
             // Apply optional server-side search (only when meaningful) and a row limit to protect the UI
             const hasActiveFilters = !!(filterArtist || filterStartDate || filterEndDate);
-            let execQuery: any = query;
+            let execQuery = query;
 
             if (debouncedSearchTerm && debouncedSearchTerm.length >= 2) {
                 const commonSearchCols = ['name', 'title', 'hashtag', 'award', 'issue', 'type'];
@@ -121,7 +121,7 @@ const ManagementPage = () => {
                 supabase.from('filmography').select('id, title').order('title')
             ]);
 
-            const { data: result, error: fetchError } = mainResp as { data: any; error: any };
+            const { data: result, error: fetchError } = mainResp as { data: Record<string, unknown>[] | null; error: unknown };
 
             if (fetchError) {
                 // Fallback attempt if date sort fails (preserve previous behavior)
@@ -139,8 +139,8 @@ const ManagementPage = () => {
             }
 
             // non-blocking: apply lookups if available
-            setArtists(((artistResp as any)?.data as { id: number, name: string }[]) || []);
-            setFilmographies(((filmResp as any)?.data as { id: number, title: string }[]) || []);
+            setArtists((artistResp.data as { id: number, name: string }[]) || []);
+            setFilmographies((filmResp.data as { id: number, title: string }[]) || []);
 
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการดึงข้อมูล');
@@ -258,11 +258,11 @@ const ManagementPage = () => {
             const matchesSearch = lowerSearch.length === 0 || Object.entries(item).some(([k, v]) => {
                 if (v == null) return false;
                 if (k === 'artist' && typeof v === 'object') {
-                    const name = Array.isArray(v) ? (v[0]?.name ?? '') : (v as any).name ?? '';
+                    const name = Array.isArray(v) ? (v[0]?.name ?? '') : (v as { name: string }).name ?? '';
                     return String(name).toLowerCase().includes(lowerSearch);
                 }
                 if (k === 'filmography' && typeof v === 'object') {
-                    const title = Array.isArray(v) ? (v[0]?.title ?? '') : (v as any).title ?? '';
+                    const title = Array.isArray(v) ? (v[0]?.title ?? '') : (v as { title: string }).title ?? '';
                     return String(title).toLowerCase().includes(lowerSearch);
                 }
                 return String(v).toLowerCase().includes(lowerSearch);
@@ -327,14 +327,14 @@ const ManagementPage = () => {
         document.body.removeChild(link);
     };
 
-    const getVisibleColumns = () => {
+    const visibleColumns = useMemo(() => {
         if (config?.importantColumns) return config.importantColumns;
         if (data.length > 0) return Object.keys(data[0]).filter(k => k !== 'artist' && k !== 'filmography');
         return [];
-    };
+    }, [config, data]);
 
     const tableColumns = useMemo(() => {
-        const visible = getVisibleColumns();
+        const visible = visibleColumns;
         return {
             visible,
             nameCol: visible.find(col => ['name', 'title', 'song', 'event', 'hashtag'].includes(col)) || visible[0],
@@ -342,9 +342,9 @@ const ManagementPage = () => {
             filmCol: visible.find(col => col === 'filmography_id'),
             dateCol: visible.find(col => col.includes('date') || col === 'date'),
         };
-    }, [data, config]);
+    }, [visibleColumns]);
 
-    const renderCellValue = (row: Record<string, unknown>, col: string, isToday: boolean = false) => {
+    const renderCellValue = useMemo(() => (row: Record<string, unknown>, col: string, isToday: boolean = false) => {
         if (col === 'artist_id' && row.artist) {
             const artist = Array.isArray(row.artist) ? row.artist[0] : row.artist;
             const name = (artist as { name: string })?.name || String(row[col] ?? '-');
@@ -377,7 +377,7 @@ const ManagementPage = () => {
                 minute: '2-digit'
             });
             return (
-                <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold whitespace-nowrap">
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold whitespace-nowrap tabular-nums">
                     {formatted}
                 </span>
             );
@@ -393,7 +393,7 @@ const ManagementPage = () => {
         }
 
         if (col === 'image_url' || (typeof value === 'string' && (value.startsWith('http') && (value.includes('.jpg') || value.includes('.png') || value.includes('.webp'))))) {
-            const altText = String((row as any).name ?? (row as any).title ?? col);
+            const altText = String((row.name as string) ?? (row.title as string) ?? col);
             return (
                 <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
                     {value ? <img src={value as string} alt={altText} className="w-full h-full object-cover" /> : null}
@@ -408,14 +408,14 @@ const ManagementPage = () => {
                 <span className={`text-sm font-medium truncate max-w-[150px] md:max-w-[200px] block ${isToday && isNameColumn ? 'text-red-600 font-bold' : 'text-slate-600'}`}>
                     {String(value ?? '-')}
                 </span>
-                {isToday && isNameColumn && (
+                {isToday && isNameColumn ? (
                     <span className="px-2 py-0.5 bg-red-600 text-white text-[9px] font-black rounded-md uppercase tracking-wide animate-pulse shadow-sm shadow-red-200">
                         Today
                     </span>
-                )}
+                ) : null}
             </div>
         );
-    };
+    }, []);
 
     return (
         <div className="p-4 md:p-8 font-baijamjuree relative min-h-screen">
@@ -468,10 +468,10 @@ const ManagementPage = () => {
                         </div>
                         <input
                             type="text"
-                            placeholder={`ค้นหาในตาราง ${config?.name || tableName}...`}
+                            placeholder={`ค้นหาในตาราง ${config?.name || tableName}…`}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all font-medium text-slate-600"
+                            className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 focus-visible:ring-indigo-600/20 transition-all font-medium text-slate-600"
                         />
                     </div>
                     <button
@@ -568,7 +568,7 @@ const ManagementPage = () => {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center py-32 gap-4">
                         <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-                        <p className="text-slate-400 font-bold animate-pulse">กำลังโหลดข้อมูล...</p>
+                        <p className="text-slate-400 font-bold animate-pulse">กำลังโหลดข้อมูล…</p>
                     </div>
                 ) : error ? (
                     <div className="flex flex-col items-center justify-center py-32 gap-4 text-center px-4">
@@ -576,7 +576,7 @@ const ManagementPage = () => {
                             <AlertCircle size={32} />
                         </div>
                         <p className="text-red-500 font-bold">{error}</p>
-                        <button onClick={fetchData} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold">ลองใหม่อีกครั้ง</button>
+                        <button onClick={fetchData} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 focus-visible:ring-4 focus-visible:ring-indigo-600/20 transition-all">ลองใหม่อีกครั้ง</button>
                     </div>
                 ) : data.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-32 gap-4 text-center px-4">
@@ -584,7 +584,7 @@ const ManagementPage = () => {
                             <DatabaseIcon size={32} />
                         </div>
                         <p className="text-slate-400 font-bold">ไม่พบข้อมูลในตารางนี้</p>
-                        <button onClick={handleAddNew} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold">เริ่มเพิ่มข้อมูลชิ้นแรก</button>
+                        <button onClick={handleAddNew} className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 focus-visible:ring-4 focus-visible:ring-indigo-600/20 transition-all">เริ่มเพิ่มข้อมูลชิ้นแรก</button>
                     </div>
                 ) : (
                     <>
@@ -605,11 +605,11 @@ const ManagementPage = () => {
                                         {/* Badge & Date Section */}
                                         <div className="flex items-center justify-between gap-3 mb-3">
                                             <div className="flex items-center gap-2">
-                                                {isToday && (
+                                                {isToday ? (
                                                     <span className="px-1.5 py-0.5 bg-red-600 text-white text-[8px] font-black rounded uppercase animate-pulse">Today</span>
-                                                )}
-                                                {dateCol && !!row[dateCol] && (
-                                                    <span className="text-[10px] font-bold text-slate-400">
+                                                ) : null}
+                                                {dateCol && row[dateCol] ? (
+                                                    <span className="text-[10px] font-bold text-slate-400 tabular-nums">
                                                         {dateCol === 'datetimetz'
                                                             ? new Date(row[dateCol] as string).toLocaleString('th-TH', {
                                                                 timeZone: 'Asia/Bangkok',
@@ -622,18 +622,18 @@ const ManagementPage = () => {
                                                             : String(row[dateCol])
                                                         }
                                                     </span>
-                                                )}
+                                                ) : null}
                                             </div>
-                                            {artistCol && !!row.artist && (
+                                            {artistCol && row.artist ? (
                                                 <span className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black whitespace-nowrap">
                                                     {(row.artist as { name: string }).name}
                                                 </span>
-                                            )}
-                                            {filmCol && !!row.filmography && (
+                                            ) : null}
+                                            {filmCol && row.filmography ? (
                                                 <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-lg text-[9px] font-black whitespace-nowrap">
                                                     {(row.filmography as { title: string }).title}
                                                 </span>
-                                            )}
+                                            ) : null}
                                         </div>
 
                                         {/* Content Section */}
@@ -671,7 +671,7 @@ const ManagementPage = () => {
                                 <table className="w-full text-left border-collapse md:min-w-full">
                                     <thead>
                                         <tr className="bg-slate-50/80 border-b border-slate-100">
-                                            {getVisibleColumns().map(col => (
+                                            {visibleColumns.map(col => (
                                                 <th key={col} className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-widest leading-none">
                                                     {col === 'artist_id' ? 'ศิลปิน' : col === 'filmography_id' ? 'ผลงาน' : col.replace('_', ' ')}
                                                 </th>
@@ -692,7 +692,7 @@ const ManagementPage = () => {
                                                     key={String(row.id)}
                                                     className={`transition-colors group cursor-pointer ${isToday ? 'bg-red-50/70 hover:bg-red-100' : 'hover:bg-indigo-50/50'}`}
                                                 >
-                                                    {getVisibleColumns().map(col => (
+                                                    {visibleColumns.map(col => (
                                                         <td key={col} className="px-6 py-5" onClick={() => handleEdit(row)}>
                                                             {renderCellValue(row, col, isToday)}
                                                         </td>
@@ -746,7 +746,7 @@ const ManagementPage = () => {
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
                             <div className="min-w-0">
                                 <h2 className="text-xl md:text-2xl font-black text-slate-800 truncate">{isAddMode ? 'เพิ่มข้อมูลใหม่' : 'แก้ไขข้อมูล'}</h2>
-                                {!isAddMode && <p className="text-[10px] md:text-sm text-slate-400 font-bold uppercase tracking-wider">Record ID: {String(selectedRow?.id ?? '')}</p>}
+                                {!isAddMode ? <p className="text-[10px] md:text-sm text-slate-400 font-bold uppercase tracking-wider tabular-nums">Record ID: {String(selectedRow?.id ?? '')}</p> : null}
                             </div>
                             <button
                                 onClick={() => {
