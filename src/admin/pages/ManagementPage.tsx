@@ -203,7 +203,9 @@ const ManagementPage = () => {
             const payload = { ...editData as Record<string, unknown> };
             delete payload.artist;
             delete payload.filmography;
+            delete payload.performance;
             delete payload.id;
+            delete payload.redirect;
 
             if (isAddMode) {
                 const { error: insertError } = await supabase.from(tableName as unknown as keyof Database['public']['Tables']).insert(payload);
@@ -265,7 +267,7 @@ const ManagementPage = () => {
         // Pre-fill from query params
         const params = new URLSearchParams(window.location.search);
         params.forEach((value, key) => {
-            if (key !== 'add') {
+            if (key !== 'add' && key !== 'redirect') {
                 // If the key exists in our template or is a known column
                 template[key] = isNaN(Number(value)) ? value : Number(value);
             }
