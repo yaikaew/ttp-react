@@ -9,6 +9,7 @@ import LoginPage from './admin/pages/LoginPage';
 import AdminDashboard from './admin/pages/AdminDashboard';
 import ManagementPage from './admin/pages/ManagementPage';
 import ScrollToTop from './components/ScrollToTop';
+import { AdminFloatingButton } from './components/AdminFloatingButton';
 import CalendarPage from './pages/Calendar';
 import Magazine from './pages/Magazine';
 import Content from './pages/Content';
@@ -40,6 +41,7 @@ function App() {
         : "bg-slate-50"
         }`}>
         <ScrollToTop />
+        <AdminFloatingButton />
 
         <Routes>
           <Route path="/" element={<HomePage />} />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { TABLE_CONFIGS } from '../config/tableConfig';
@@ -149,6 +149,22 @@ const ManagementPage = () => {
         }
     };
 
+    const handleCancel = () => {
+        setIsDrawerOpen(false);
+        document.body.style.overflow = "";
+
+        // ถ้ามาจากการกด "+" ในหน้าปกติ (มี add=true ใน URL) ให้กลับไปหน้าเดิม
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('add') === 'true') {
+            const redirectUrl = params.get('redirect');
+            if (redirectUrl) {
+                navigate(redirectUrl);
+            } else {
+                navigate(-1);
+            }
+        }
+    };
+
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,6 +175,7 @@ const ManagementPage = () => {
         const t = setTimeout(() => setDebouncedSearchTerm(searchTerm.trim()), 250);
         return () => clearTimeout(t);
     }, [searchTerm]);
+
 
     const handleDelete = async (e: React.MouseEvent, id: string | number) => {
         e.stopPropagation();
@@ -207,6 +224,16 @@ const ManagementPage = () => {
             fetchData();
             setIsDrawerOpen(false);
             document.body.style.overflow = ""; // Ensure scroll is restored
+
+            // ถ้ามี redirect query param แสดงว่ามาจากหน้าหลัก ให้กลับไปหน้าเดิม
+            const params = new URLSearchParams(window.location.search);
+            const redirectUrl = params.get('redirect');
+            if (redirectUrl) {
+                // รอให้ showSuccess และการบันทึกเสร็จสมบูรณ์สักครู่
+                setTimeout(() => {
+                    navigate(redirectUrl);
+                }, 1000);
+            }
         } catch (err: unknown) {
             alert('บันทึกไม่สำเร็จ: ' + (err instanceof Error ? err.message : 'Unknown error'));
         } finally {
@@ -214,7 +241,7 @@ const ManagementPage = () => {
         }
     };
 
-    const handleAddNew = () => {
+    const handleAddNew = useCallback(() => {
         setIsAddMode(true);
         setSelectedRow(null);
         document.body.style.overflow = "hidden"; // Lock scroll when drawer opens
@@ -235,9 +262,18 @@ const ManagementPage = () => {
             }
         });
 
+        // Pre-fill from query params
+        const params = new URLSearchParams(window.location.search);
+        params.forEach((value, key) => {
+            if (key !== 'add') {
+                // If the key exists in our template or is a known column
+                template[key] = isNaN(Number(value)) ? value : Number(value);
+            }
+        });
+
         setEditData(template);
         setIsDrawerOpen(true);
-    };
+    }, [data, config, tableName]);
 
     const handleEdit = (row: Record<string, unknown>) => {
         setIsAddMode(false);
@@ -246,6 +282,16 @@ const ManagementPage = () => {
         setIsDrawerOpen(true);
         document.body.style.overflow = "hidden"; // Lock scroll
     };
+
+    // Handle auto-add from query params
+    useEffect(() => {
+        if (!loading && tableName) {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('add') === 'true' && !isDrawerOpen) {
+                handleAddNew();
+            }
+        }
+    }, [loading, tableName, isDrawerOpen, handleAddNew]);
 
     const handleInputChange = (key: string, value: unknown) => {
         setEditData(prev => ({ ...prev, [key]: value }));
@@ -738,10 +784,7 @@ const ManagementPage = () => {
 
             {isDrawerOpen && (
                 <div className="fixed inset-0 z-100 flex justify-end text-slate-800">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => {
-                        setIsDrawerOpen(false);
-                        document.body.style.overflow = "";
-                    }} />
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={handleCancel} />
                     <div className="relative w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-500">
                         <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
                             <div className="min-w-0">
@@ -749,10 +792,7 @@ const ManagementPage = () => {
                                 {!isAddMode ? <p className="text-[10px] md:text-sm text-slate-400 font-bold uppercase tracking-wider tabular-nums">Record ID: {String(selectedRow?.id ?? '')}</p> : null}
                             </div>
                             <button
-                                onClick={() => {
-                                    setIsDrawerOpen(false);
-                                    document.body.style.overflow = "";
-                                }}
+                                onClick={handleCancel}
                                 aria-label="ปิด"
                                 title="ปิด"
                                 className="p-2 md:p-3 hover:bg-slate-100 rounded-2xl text-slate-400 hover:text-slate-600 transition-all border border-slate-100 shadow-sm shrink-0"
@@ -993,10 +1033,7 @@ const ManagementPage = () => {
 
                         <div className="p-6 border-t border-slate-100 bg-white flex gap-4">
                             <button
-                                onClick={() => {
-                                    setIsDrawerOpen(false);
-                                    document.body.style.overflow = "";
-                                }}
+                                onClick={handleCancel}
                                 className="flex-1 py-4 px-6 border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-all"
                             >
                                 ยกเลิก
