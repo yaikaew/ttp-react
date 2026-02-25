@@ -11,6 +11,7 @@ import ManagementPage from './admin/pages/ManagementPage';
 import ScrollToTop from './components/ScrollToTop';
 import { AdminFloatingButton } from './components/AdminFloatingButton';
 import CalendarPage from './pages/Calendar';
+import CalendarTable from './pages/CalendarTable';
 import Magazine from './pages/Magazine';
 import Content from './pages/Content';
 import Performance from './pages/Performance';
@@ -49,6 +50,7 @@ function App() {
 
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/calendar-table" element={<CalendarTable />} />
           <Route path="/outfits" element={<OutfitsPage />} />
           <Route path="/discography" element={<Discography />} />
           <Route path="/performance" element={<Performance />} />
