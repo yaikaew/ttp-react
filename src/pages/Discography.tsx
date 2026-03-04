@@ -88,13 +88,15 @@ const Discography = () => {
                                                     </span>
                                                 </a>
 
-                                                <a href={item.streaming || ""} target="_blank" rel="noreferrer"
-                                                    className="group/link flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-content-text-sub hover:text-brand-primary transition-colors">
-                                                    <span className="relative">
-                                                        Streaming
-                                                        <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-primary transition-all group-hover/link:w-full" />
-                                                    </span>
-                                                </a>
+                                                {item.streaming && (
+                                                    <a href={item.streaming || ""} target="_blank" rel="noreferrer"
+                                                        className="group/link flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-content-text-sub hover:text-brand-primary transition-colors">
+                                                        <span className="relative">
+                                                            Streaming
+                                                            <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-primary transition-all group-hover/link:w-full" />
+                                                        </span>
+                                                    </a>
+                                                )}                                                
                                             </div>
                                         </div>
                                     </div>
