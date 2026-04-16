@@ -70,9 +70,23 @@ const Sidebar = () => {
     }, [])
 
     const handleLogout = async () => {
-        const { error } = await supabase.auth.signOut()
-        if (error) alert(error.message)
-        else window.location.reload()
+        try {
+            // Clear local storage first
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Attempt to sign out from Supabase
+            await supabase.auth.signOut();
+
+            // Even if there's an error, we still want to reload the page
+            // because we've cleared local storage
+            window.location.reload();
+        } catch (error) {
+            // If signOut fails, still clear storage and reload
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.reload();
+        }
     }
 
     // Styles from Template

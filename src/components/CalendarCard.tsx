@@ -35,6 +35,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editForm, setEditForm] = useState({
+        id: event.id,
         artist_id: event.artist_id,
         name: event.name,
         datetimetz: event.datetimetz,
@@ -190,6 +191,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setEditForm({
+                                                id: event.id,
                                                 artist_id: event.artist_id,
                                                 name: event.name,
                                                 datetimetz: event.datetimetz,
