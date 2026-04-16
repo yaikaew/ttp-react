@@ -20,6 +20,7 @@ import HomePage from './pages/HomePage';
 // import BrandEndorsementPage from './pages/BrandEndorsementPage';
 // import AwardsPage from './pages/AwardsPage';
 import OutfitsPage from './pages/OutfitsPage';
+import CalendarAll from './pages/CalendarAll';
 
 const ProtectedAdmin = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAdminAuth();
@@ -51,6 +52,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/calendar-table" element={<CalendarTable />} />
+          <Route path="/calendar-all" element={<CalendarAll />} />
           <Route path="/outfits" element={<OutfitsPage />} />
           <Route path="/discography" element={<Discography />} />
           <Route path="/performance" element={<Performance />} />

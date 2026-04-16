@@ -4,6 +4,7 @@ import { useAdminAuth } from '../hooks/useAdminAuth';
 
 const routeToTable: Record<string, string> = {
     '/calendar': 'calendar',
+    '/calendar-all': 'calendar',
     '/outfits': 'calendar',
     '/filmography': 'filmography',
     '/discography': 'discography',
