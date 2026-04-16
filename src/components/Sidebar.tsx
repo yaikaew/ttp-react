@@ -2,7 +2,8 @@ import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import {
     Menu, X, Sparkles, Database, LogOut, Sun, Moon, Heart,
-    Home, BookOpen, Tag, Trophy,
+    Home, 
+    // BookOpen, Tag, Trophy,
     User,
     Calendar,
     Film,
@@ -26,9 +27,9 @@ const MENUS = [
     { name: "Discography", path: "/discography", icon: Disc3 },
     { name: "Performance", path: "/performance", icon: PlayCircle },
     { name: "Content", path: "/content", icon: Video },
-    { name: "Magazine", path: "/magazine", icon: BookOpen },
-    { name: 'Endorsements', path: '/endorsements', icon: Tag },
-    { name: 'Awards', path: '/awards', icon: Trophy },
+    // { name: "Magazine", path: "/magazine", icon: BookOpen },
+    // { name: 'Endorsements', path: '/endorsements', icon: Tag },
+    // { name: 'Awards', path: '/awards', icon: Trophy },
 ]
 
 const Sidebar = () => {

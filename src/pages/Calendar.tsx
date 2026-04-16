@@ -3,8 +3,7 @@ import { useCalendar } from '../hooks/useCalendar';
 import FilterHeader from '../components/FilterHeader'
 import { LoadingState } from '../components/LoadingState'
 import { NoResults } from '../components/NoResults';
-import CalendarCard from '../components/CalendarCard';
-import CalendarModal, { type CalendarEvent } from '../components/CalendarModal'; // Import Type มาใช้
+import CalendarCard, { type CalendarEvent } from '../components/CalendarCard';
 
 const Calendar = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -14,10 +13,7 @@ const Calendar = () => {
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
 
-    const { schedule, loading } = useCalendar();
-
-    // ใช้ Type ที่ Import มาจาก Modal เพื่อความแม่นยำ
-    const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+    const { schedule, loading, refreshSchedule } = useCalendar();
 
     const handleReset = () => {
         setFilterArtist('All'); setSearchTerm(''); setStartDate(''); setEndDate(''); setSortOrder('asc');
@@ -98,12 +94,12 @@ const Calendar = () => {
                                 <div className="h-px grow bg-linear-to-r from-brand-primary to-transparent" />
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
                                 {groupedItems[monthYear].map((event: CalendarEvent) => (
                                     <CalendarCard
                                         key={event.id}
                                         event={event}
-                                        onClick={(ev: CalendarEvent) => setSelectedEvent(ev)}
+                                        onEventUpdate={refreshSchedule}
                                     />
                                 ))}
                             </div>
@@ -113,12 +109,6 @@ const Calendar = () => {
                     <NoResults onReset={handleReset} />
                 )}
             </div>
-
-            {/* Modal */}
-            <CalendarModal
-                event={selectedEvent}
-                onClose={() => setSelectedEvent(null)}
-            />
         </div>
     );
 };

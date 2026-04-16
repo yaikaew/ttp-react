@@ -12,13 +12,13 @@ import ScrollToTop from './components/ScrollToTop';
 import { AdminFloatingButton } from './components/AdminFloatingButton';
 import CalendarPage from './pages/Calendar';
 import CalendarTable from './pages/CalendarTable';
-import Magazine from './pages/Magazine';
+// import Magazine from './pages/Magazine';
 import Content from './pages/Content';
 import Performance from './pages/Performance';
 import Discography from './pages/Discography';
 import HomePage from './pages/HomePage';
-import BrandEndorsementPage from './pages/BrandEndorsementPage';
-import AwardsPage from './pages/AwardsPage';
+// import BrandEndorsementPage from './pages/BrandEndorsementPage';
+// import AwardsPage from './pages/AwardsPage';
 import OutfitsPage from './pages/OutfitsPage';
 
 const ProtectedAdmin = ({ children }: { children: React.ReactNode }) => {
@@ -56,10 +56,10 @@ function App() {
           <Route path="/performance" element={<Performance />} />
           <Route path="/filmography" element={<Filmography />} />
           <Route path="/filmography/:id" element={<FilmDetail />} />
-          <Route path="/magazine" element={<Magazine />} />
+          {/* <Route path="/magazine" element={<Magazine />} /> */}
           <Route path="/content" element={<Content />} />
-          <Route path="/endorsements" element={<BrandEndorsementPage />} />
-          <Route path="/awards" element={<AwardsPage />} />
+          {/* <Route path="/endorsements" element={<BrandEndorsementPage />} /> */}
+          {/* <Route path="/awards" element={<AwardsPage />} /> */}
 
           {/* Admin Routes */}
           <Route path="/admin" element={
