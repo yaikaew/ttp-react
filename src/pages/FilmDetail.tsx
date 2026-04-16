@@ -46,6 +46,39 @@ const VideoGrid = ({
 }) => {
     if (ids.length === 0) return null;
 
+    const YouTubeThumbnail = ({ id, alt }: { id: string; alt: string }) => {
+        // เริ่มต้นด้วย maxresdefault
+        const [imgSrc, setImgSrc] = React.useState(`https://img.youtube.com/vi/${id}/maxresdefault.jpg`);
+        const [isFallback, setIsFallback] = React.useState(false);
+
+        const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+            // YouTube จะส่งรูป "Not Found" ขนาด 120x90 มาให้ถ้าไม่มีรูปคุณภาพสูง
+            // ถ้าโหลดเสร็จแล้วความกว้างเท่ากับ 120 แสดงว่าเป็นรูป "สีเทา" ให้เปลี่ยนเป็น mqdefault
+            if ((e.target as HTMLImageElement).naturalWidth === 120 && !isFallback) {
+            setImgSrc(`https://img.youtube.com/vi/${id}/mqdefault.jpg`);
+            setIsFallback(true);
+            }
+        };
+
+        const handleError = () => {
+            // กันเหนียวไว้ ถ้าเกิดโหลดไฟล์ไม่สำเร็จ (404) ก็ให้เปลี่ยน URL เช่นกัน
+            if (!isFallback) {
+            setImgSrc(`https://img.youtube.com/vi/${id}/mqdefault.jpg`);
+            setIsFallback(true);
+            }
+        };
+
+        return (
+            <img
+            src={imgSrc}
+            alt={alt}
+            onLoad={handleLoad}
+            onError={handleError}
+            className="w-full h-full object-cover"
+            />
+        );
+    };
+
     return (
         <div>
             <SectionHeader
@@ -53,21 +86,17 @@ const VideoGrid = ({
                 title={title}
                 subtitle={`${ids.length} clips available`}
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                 {ids.map((id, index) => (
                     <div key={`${title}-${id}`} className="relative group">
-                        <div className="aspect-video rounded-3xl overflow-hidden bg-content-text-main shadow-lg shadow-brand-primary/5 border border-brand-sidebar-border group-hover:border-brand-primary-light transition-all duration-500">
-                            <iframe
-                                className="w-full h-full opacity-85 group-hover:opacity-100 transition-opacity duration-500"
-                                src={`https://www.youtube.com/embed/${id}?modestbranding=1&rel=0`}
-                                title={`${title} ${index + 1}`}
-                                allowFullScreen
-                                loading="lazy"
-                            />
-                        </div>
-                        <div className="absolute -bottom-3 -right-2 w-8 h-8 bg-card-bg text-[10px] font-black rounded-xl flex items-center justify-center text-brand-primary shadow-lg border border-brand-primary-light transition-transform group-hover:scale-110 group-hover:rotate-6">
-                            {String(index + 1).padStart(2, '0')}
-                        </div>
+                        <a href={`https://youtu.be/${id}`} target="_blank" rel="noopener noreferrer">
+                            <div className="aspect-video rounded-3xl overflow-hidden bg-content-text-main shadow-lg shadow-brand-primary/5 border border-brand-sidebar-border group-hover:border-brand-primary-light transition-all duration-500">
+                                <YouTubeThumbnail id={id} alt={title || "thumbnail"} />
+                            </div>
+                            <div className="absolute -bottom-3 -right-2 w-8 h-8 bg-card-bg text-[10px] font-black rounded-xl flex items-center justify-center text-brand-primary shadow-lg border border-brand-primary-light transition-transform group-hover:scale-110 group-hover:rotate-6">
+                                {String(index + 1).padStart(2, '0')}
+                            </div>
+                        </a>
                     </div>
                 ))}
             </div>
