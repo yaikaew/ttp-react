@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Edit, Trash2, Megaphone } from 'lucide-react';
 import { getArtistTheme, getDOWTheme } from '../utils/theme';
-import { getTimeFromDatetimetz } from '../utils/calendarHelpers';
+import { getDatetimeLocalValueFromBangkokDatetimetz, getTimeFromDatetimetz } from '../utils/calendarHelpers';
 import { Button } from '../components/Button';
 import { useAdminAuth } from '../hooks/useAdminAuth';
 import { calendarService } from '../services/calendarService';
@@ -86,16 +86,32 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
         : event.artist?.name;
     const artistTheme = getArtistTheme(artistName || 'Unknown');
 
-    const eventDate = new Date(event.datetimetz);
     const dowTheme = getDOWTheme(event.datetimetz);
     const eventTime = getTimeFromDatetimetz(event.datetimetz);
 
-    const today = new Date();
-    
-    const isToday = 
-        eventDate.getDate() === today.getDate() &&
-        eventDate.getMonth() === today.getMonth() &&
-        eventDate.getFullYear() === today.getFullYear();
+    const eventMonth = new Date(event.datetimetz).toLocaleString('en-US', {
+        month: 'short',
+        timeZone: 'Asia/Bangkok',
+    });
+    const eventDay = new Date(event.datetimetz).toLocaleString('en-US', {
+        day: '2-digit',
+        timeZone: 'Asia/Bangkok',
+    });
+
+    const todayBangkok = new Date().toLocaleString('en-GB', {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    });
+    const eventBangkok = new Date(event.datetimetz).toLocaleString('en-GB', {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    });
+
+    const isToday = eventBangkok === todayBangkok;
 
     const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link || event.note;
 
@@ -147,10 +163,10 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
 
                     <div className={`${dowTheme} text-white rounded-2xl p-2 min-w-[55px] flex flex-col items-center shadow-md shrink-0`}>
                         <span className="text-[10px] font-bold uppercase leading-none mb-1 opacity-90">
-                            {eventDate.toLocaleString('en-US', { month: 'short' })}
+                            {eventMonth}
                         </span>
                         <span className="text-xl font-black leading-none">
-                            {eventDate.getDate()}
+                            {eventDay}
                         </span>
                     </div>
                 </div>
@@ -330,11 +346,12 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Date & Time *</label>
                                 <input
                                     type="datetime-local"
-                                    value={editForm.datetimetz.slice(0, 16)}
-                                    onChange={(e) => setEditForm({...editForm, datetimetz: e.target.value + ':00+00'})}
+                                    value={getDatetimeLocalValueFromBangkokDatetimetz(editForm.datetimetz)}
+                                    onChange={(e) => setEditForm({...editForm, datetimetz: `${e.target.value}:00+07:00`})}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                     required
                                 />
+                                <p className="mt-1 text-[11px] text-content-text-sub">แสดงเวลาในโซน Asia/Bangkok (UTC+7)</p>
                             </div>
                             
                             <div>
