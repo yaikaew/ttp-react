@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Edit, Trash2, Megaphone } from 'lucide-react';
+import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Edit, Trash2, Megaphone, CalendarPlus } from 'lucide-react';
 import { getArtistTheme, getDOWTheme } from '../utils/theme';
 import { getDatetimeLocalValueFromBangkokDatetimetz, getTimeFromDatetimetz } from '../utils/calendarHelpers';
 import { Button } from '../components/Button';
@@ -138,14 +138,51 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
         }
     };
 
+    const getGoogleCalendarUrl = () => {
+        const detailsParts: string[] = [];
+
+        const displayArtistName = artistName === 'TeeteePor' ? 'Teetee Por' : artistName;
+        if (displayArtistName) detailsParts.push(`🙋🏻‍♂️ : ${displayArtistName}`);
+        if (event.location) detailsParts.push(`📍 : ${event.location}`);
+        if (event.live_platform) detailsParts.push(`🎥 : ${event.live_platform}`);
+        if (event.note) detailsParts.push(`📢 : ${event.note}`);
+
+        const group2 = [];
+        if (event.keyword) group2.push(`🔑 : ${event.keyword}`);
+        if (event.hashtag) group2.push(`#️⃣ : ${event.hashtag}`);
+        if (group2.length > 0) {
+            if (detailsParts.length > 0) detailsParts.push('');
+            detailsParts.push(...group2);
+        }
+
+        if (event.rerun_link) {
+            if (detailsParts.length > 0) detailsParts.push('');
+            detailsParts.push(`🔗 : ${event.rerun_link}`);
+        }
+
+        const details = detailsParts.join('\n');
+
+        const startDate = new Date(event.datetimetz);
+        // Set duration to be the same as start time
+        const endDate = startDate;
+
+        const formatToGoogleCalendarDate = (date: Date) => {
+            return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
+        };
+
+        const dates = `${formatToGoogleCalendarDate(startDate)}/${formatToGoogleCalendarDate(endDate)}`;
+
+        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.name)}&dates=${dates}&details=${encodeURIComponent(details)}${event.location ? `&location=${encodeURIComponent(event.location)}` : ''}`;
+    };
+
     return (
         <div
             className=
-                {`self-start group relative bg-card-bg rounded-3xl overflow-hidden border border-brand-sidebar-border hover:border-brand-accent-light hover:shadow-xl hover:shadow-brand-primary/10 transition-all duration-500 flex flex-col shadow-sm
-                    ${isToday 
-                        ? 'border-red-500 shadow-md shadow-red-500/10' // ถ้าเป็นวันนี้: กรอบแดง
-                        : 'border-brand-sidebar-border hover:border-brand-accent-light' // ถ้าไม่ใช่: กรอบปกติ
-                    }
+            {`self-start group relative bg-card-bg rounded-3xl overflow-hidden border border-brand-sidebar-border hover:border-brand-accent-light hover:shadow-xl hover:shadow-brand-primary/10 transition-all duration-500 flex flex-col shadow-sm
+                    ${isToday
+                    ? 'border-red-500 shadow-md shadow-red-500/10' // ถ้าเป็นวันนี้: กรอบแดง
+                    : 'border-brand-sidebar-border hover:border-brand-accent-light' // ถ้าไม่ใช่: กรอบปกติ
+                }
                     ${isExpanded ? 'shadow-xl' : ''}
                 `}
         >
@@ -175,7 +212,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                 <div className="pt-4 border-t border-brand-sidebar-border/50">
                     <div className="flex flex-row items-start justify-between gap-2">
                         {/* ฝั่งซ้าย: ข้อมูลเรียงลงมาเป็นแนวตั้ง */}
-                        <div className="flex flex-col gap-2 flex-grow">
+                        <div className="flex flex-col gap-2 grow">
                             {/* เวลา */}
                             <div className="flex items-center gap-1.5 px-3 py-1.5 w-fit bg-page-bg/50 rounded-xl text-content-text-sub text-xs font-medium border border-brand-sidebar-border/50">
                                 <Clock className="w-3.5 h-3.5 text-brand-primary" />
@@ -201,6 +238,16 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
 
                         {/* ฝั่งขวา: ปุ่มลูกศร และปุ่ม admin */}
                         <div className="flex items-start pt-1 gap-2">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(getGoogleCalendarUrl(), '_blank');
+                                }}
+                                className="p-1.5 rounded-full bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-all duration-300"
+                                title="Add to Calendar"
+                            >
+                                <CalendarPlus className="w-4 h-4" />
+                            </button>
                             {user && (
                                 <>
                                     <button
@@ -249,8 +296,8 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                         setIsExpanded(!isExpanded);
                                     }}
                                     className={`p-1.5 rounded-full transition-all duration-300 ${isExpanded
-                                            ? 'bg-brand-primary text-white rotate-180'
-                                            : 'bg-brand-sidebar-border/30 text-content-text-sub hover:bg-brand-primary/20'
+                                        ? 'bg-brand-primary text-white rotate-180'
+                                        : 'bg-brand-sidebar-border/30 text-content-text-sub hover:bg-brand-primary/20'
                                         }`}
                                 >
                                     <ChevronDown className="w-4 h-4" />
@@ -312,13 +359,13 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-card-bg rounded-3xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-brand-sidebar-border">
                         <h2 className="text-xl font-bold text-content-text-main mb-6">Edit Event</h2>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Artist *</label>
                                 <select
                                     value={editForm.artist_id}
-                                    onChange={(e) => setEditForm({...editForm, artist_id: parseInt(e.target.value)})}
+                                    onChange={(e) => setEditForm({ ...editForm, artist_id: parseInt(e.target.value) })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                     required
                                 >
@@ -330,141 +377,141 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                     ))}
                                 </select>
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Name *</label>
                                 <input
                                     type="text"
                                     value={editForm.name}
-                                    onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                     required
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Date & Time *</label>
                                 <input
                                     type="datetime-local"
                                     value={getDatetimeLocalValueFromBangkokDatetimetz(editForm.datetimetz)}
-                                    onChange={(e) => setEditForm({...editForm, datetimetz: `${e.target.value}:00+07:00`})}
+                                    onChange={(e) => setEditForm({ ...editForm, datetimetz: `${e.target.value}:00+07:00` })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                     required
                                 />
                                 <p className="mt-1 text-[11px] text-content-text-sub">แสดงเวลาในโซน Asia/Bangkok (UTC+7)</p>
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Location</label>
                                 <input
                                     type="text"
                                     value={editForm.location}
-                                    onChange={(e) => setEditForm({...editForm, location: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Live Platform</label>
                                 <input
                                     type="text"
                                     value={editForm.live_platform}
-                                    onChange={(e) => setEditForm({...editForm, live_platform: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, live_platform: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Keyword</label>
                                 <input
                                     type="text"
                                     value={editForm.keyword}
-                                    onChange={(e) => setEditForm({...editForm, keyword: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, keyword: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Hashtag</label>
                                 <input
                                     type="text"
                                     value={editForm.hashtag}
-                                    onChange={(e) => setEditForm({...editForm, hashtag: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, hashtag: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Rerun Link</label>
                                 <input
                                     type="url"
                                     value={editForm.rerun_link}
-                                    onChange={(e) => setEditForm({...editForm, rerun_link: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, rerun_link: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Info Link</label>
                                 <input
                                     type="url"
                                     value={editForm.info_link}
-                                    onChange={(e) => setEditForm({...editForm, info_link: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, info_link: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Note</label>
                                 <textarea
                                     value={editForm.note}
-                                    onChange={(e) => setEditForm({...editForm, note: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, note: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                     rows={3}
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Outfit</label>
                                 <input
                                     type="text"
                                     value={editForm.outfit}
-                                    onChange={(e) => setEditForm({...editForm, outfit: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, outfit: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Outfit Image URL</label>
                                 <input
                                     type="url"
                                     value={editForm.outfit_img}
-                                    onChange={(e) => setEditForm({...editForm, outfit_img: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, outfit_img: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">Poster URL</label>
                                 <input
                                     type="url"
                                     value={editForm.poster_url}
-                                    onChange={(e) => setEditForm({...editForm, poster_url: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, poster_url: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-sm font-medium text-content-text-main mb-2">DMD</label>
                                 <input
                                     type="text"
                                     value={editForm.dmd}
-                                    onChange={(e) => setEditForm({...editForm, dmd: e.target.value})}
+                                    onChange={(e) => setEditForm({ ...editForm, dmd: e.target.value })}
                                     className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="flex gap-3 justify-end">
                             <Button
                                 variant="secondary"

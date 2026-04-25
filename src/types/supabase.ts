@@ -16,14 +16,17 @@ export type Database = {
     Tables: {
       artist: {
         Row: {
+          avatar: string | null
           id: number
           name: string
         }
         Insert: {
+          avatar?: string | null
           id?: number
           name: string
         }
         Update: {
+          avatar?: string | null
           id?: number
           name?: string
         }
@@ -306,6 +309,7 @@ export type Database = {
         Row: {
           bts_id: string | null
           content_id: string | null
+          content1: string | null
           filmography_id: number | null
           fullep_id: string | null
           hashtag: string | null
@@ -321,6 +325,7 @@ export type Database = {
         Insert: {
           bts_id?: string | null
           content_id?: string | null
+          content1?: string | null
           filmography_id?: number | null
           fullep_id?: string | null
           hashtag?: string | null
@@ -336,6 +341,7 @@ export type Database = {
         Update: {
           bts_id?: string | null
           content_id?: string | null
+          content1?: string | null
           filmography_id?: number | null
           fullep_id?: string | null
           hashtag?: string | null
@@ -367,6 +373,7 @@ export type Database = {
           id: number
           location_count: string | null
           posts: string | null
+          "Rakuten Rank": string | null
           rank_th: string | null
           rank_ww: string | null
           source_link: string | null
@@ -379,6 +386,7 @@ export type Database = {
           id?: number
           location_count?: string | null
           posts?: string | null
+          "Rakuten Rank"?: string | null
           rank_th?: string | null
           rank_ww?: string | null
           source_link?: string | null
@@ -391,6 +399,7 @@ export type Database = {
           id?: number
           location_count?: string | null
           posts?: string | null
+          "Rakuten Rank"?: string | null
           rank_th?: string | null
           rank_ww?: string | null
           source_link?: string | null
