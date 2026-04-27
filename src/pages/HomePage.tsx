@@ -11,7 +11,7 @@ const RECOMMENDED_LIST = [
     {
         id: 1,
         title: "Duang With You",
-        desc: "ซีรีส์ที่กำลังออนแอร์อยู่ตอนนี้",
+        desc: "",
         tag: "On-Air",
         img: "https://img.youtube.com/vi/oyzFXVWqotQ/maxresdefault.jpg",
         link: "https://youtu.be/oyzFXVWqotQ",

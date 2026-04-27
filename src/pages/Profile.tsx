@@ -129,6 +129,7 @@ const ArtistCard = ({ artist }: { artist: Artist }) => {
                             <a
                                 key={idx}
                                 href={social.url}
+                                target="_blank" rel="noopener noreferrer"
                                 className={`${social.color} w-10 h-10 rounded-2xl flex items-center justify-center text-white hover:scale-110 hover:-rotate-6 transition-all shadow-md`}
                             >
                                 {social.icon}
