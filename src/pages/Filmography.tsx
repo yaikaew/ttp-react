@@ -87,7 +87,7 @@ const Filmography = () => {
                 (typeof item.artist === 'object' && !Array.isArray(item.artist) && filterArtist.includes(item.artist.name)) ||
                 (Array.isArray(item.artist) && item.artist[0]?.name && filterArtist.includes(item.artist[0].name))
             ));
-        const matchRole = filterRole.includes('All') || filterRole.includes(item.status);
+        const matchRole = filterRole.includes('All') || (item.status && filterRole.includes(item.status));
         const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
         const matchDate = itemDate >= start && itemDate <= end;
 
