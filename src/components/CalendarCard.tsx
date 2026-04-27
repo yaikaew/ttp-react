@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Edit, Trash2, Megaphone, CalendarPlus } from 'lucide-react';
+import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Edit, Trash2, Megaphone, CalendarPlus, InfoIcon } from 'lucide-react';
 import { getArtistTheme, getDOWTheme } from '../utils/theme';
 import { getDatetimeLocalValueFromBangkokDatetimetz, getTimeFromDatetimetz } from '../utils/calendarHelpers';
 import { Button } from '../components/Button';
@@ -113,7 +113,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
 
     const isToday = eventBangkok === todayBangkok;
 
-    const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link || event.note;
+    const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link || event.info_link || event.note;
 
     const handleEdit = async () => {
         try {
@@ -336,19 +336,33 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                 )}
                             </div>
 
-                            {event.rerun_link && (
-                                <Button
-                                    variant="primary"
-                                    size="sm"
-                                    href={event.rerun_link}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    icon={PlayCircle}
-                                    className="w-full rounded-2xl h-10"
-                                >
-                                    รับชมย้อนหลัง
-                                </Button>
-                            )}
+                            <div className="flex gap-2">
+                                {event.rerun_link && (
+                                    <a
+                                        href={event.rerun_link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-all duration-300 text-xs font-medium"
+                                        title="Watch rerun"
+                                    >
+                                        <PlayCircle className="w-4 h-4" />
+                                        <span>รับชมย้อนหลัง</span>
+                                    </a>
+                                )}
+
+                                {event.info_link && (
+                                    <a
+                                        href={event.info_link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-all duration-300 text-xs font-medium"
+                                        title="Info"
+                                    >
+                                        <InfoIcon className="w-4 h-4" />
+                                        <span>รายละเอียดเพิ่มเติม</span>
+                                    </a>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
