@@ -82,7 +82,7 @@ const CalendarTable = () => {
                 endDate={endDate} setEndDate={setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setFilterArtist },
+                    { label: 'Artist', currentValue: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX', 'BokBear'], onSelect: setFilterArtist },
                 ]}
             />
 

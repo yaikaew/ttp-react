@@ -19,6 +19,11 @@ export const ARTIST_THEME_MAP: Record<string, ThemeOption> = {
   },
   por: { bg: "bg-sky-50", text: "text-sky-600", border: "border-sky-100" },
   dexx: { bg: "bg-blue-50", text: "text-blue-600", border: "border-blue-100" },
+  bokbear: { 
+    bg: "bg-gradient-to-r from-[#94DDFF]/30 to-[#C6BBFF]/30", 
+    text: "text-[#8A94E0]", 
+    border: "border-[#B0CCFF]/50" 
+  },
 };
 
 export const DOW_THEME_MAP: Record<number, string> = {
