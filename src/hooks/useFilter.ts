@@ -18,16 +18,38 @@ interface FilterableItem {
 }
 
 export const useFilter = <T extends FilterableItem>(initialData: T[]) => {
-  const [filterArtist, setFilterArtist] = useState<string>("All");
-  const [filterType, setFilterType] = useState<string>("All");
+  const [filterArtist, setFilterArtist] = useState<string[]>(["All"]);
+  const [filterType, setFilterType] = useState<string[]>(["All"]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  const handleFilterArtistChange = (artist: string) => {
+    setFilterArtist(prev => {
+      if (prev.includes(artist)) {
+        return prev.filter(a => a !== artist);
+      } else {
+        const newFilters = prev.filter(a => a !== "All");
+        return [...newFilters, artist];
+      }
+    });
+  };
+
+  const handleFilterTypeChange = (type: string) => {
+    setFilterType(prev => {
+      if (prev.includes(type)) {
+        return prev.filter(t => t !== type);
+      } else {
+        const newFilters = prev.filter(t => t !== "All");
+        return [...newFilters, type];
+      }
+    });
+  };
+
   const handleReset = () => {
-    setFilterArtist("All");
-    setFilterType("All");
+    setFilterArtist(["All"]);
+    setFilterType(["All"]);
     setSearchTerm("");
     setStartDate("");
     setEndDate("");
@@ -49,23 +71,23 @@ export const useFilter = <T extends FilterableItem>(initialData: T[]) => {
           : Infinity;
         const matchDate = itemDate >= start && itemDate <= end;
 
-        // 2. Filter Artist (Type-safe check)
-        let matchArtist = filterArtist === "All";
+        // 2. Filter Artist (Type-safe check) - Support multiple selections
+        let matchArtist = filterArtist.includes("All");
         if (!matchArtist && item.artist) {
           if (Array.isArray(item.artist)) {
             // กรณีเป็น Array: ตรวจสอบว่ามี artist คนไหนใน list ที่ชื่อตรงกับ filter ไหม
-            matchArtist = item.artist.some((a) => a.name === filterArtist);
+            matchArtist = item.artist.some((a) => filterArtist.includes(a.name));
           } else {
             // กรณีเป็น Object เดี่ยว
-            matchArtist = item.artist.name === filterArtist;
+            matchArtist = filterArtist.includes(item.artist.name);
           }
         }
 
-        // 3. Filter Type
+        // 3. Filter Type - Support multiple selections
         const matchType =
-          filterType === "All" ||
-          item.result === filterType ||
-          item.type === filterType;
+          filterType.includes("All") ||
+          filterType.includes(item.result) ||
+          filterType.includes(item.type);
 
         // 4. Filter Search
         const nameToSearch = (item.title || item.name || "").toLowerCase();
@@ -112,8 +134,8 @@ export const useFilter = <T extends FilterableItem>(initialData: T[]) => {
       sortOrder,
     },
     setters: {
-      setFilterArtist,
-      setFilterType,
+      setFilterArtist: handleFilterArtistChange,
+      setFilterType: handleFilterTypeChange,
       setSearchTerm,
       setStartDate,
       setEndDate,

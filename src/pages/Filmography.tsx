@@ -12,8 +12,8 @@ type FilmWithArtist = Database['public']['Tables']['filmography']['Row'] & {
 };
 const Filmography = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false)
-    const [filterArtist, setFilterArtist] = useState('All')
-    const [filterRole, setFilterRole] = useState('All')
+    const [filterArtist, setFilterArtist] = useState<string[]>(['All'])
+    const [filterRole, setFilterRole] = useState<string[]>(['All'])
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const [searchTerm, setSearchTerm] = useState('')
     const [startDate, setStartDate] = useState('')
@@ -47,9 +47,31 @@ const Filmography = () => {
         fetchFilms();
     }, []);
 
+    const handleFilterArtistChange = (artist: string) => {
+        setFilterArtist(prev => {
+            if (prev.includes(artist)) {
+                return prev.filter(a => a !== artist);
+            } else {
+                const newFilters = prev.filter(a => a !== 'All');
+                return [...newFilters, artist];
+            }
+        });
+    };
+
+    const handleFilterRoleChange = (role: string) => {
+        setFilterRole(prev => {
+            if (prev.includes(role)) {
+                return prev.filter(r => r !== role);
+            } else {
+                const newFilters = prev.filter(r => r !== 'All');
+                return [...newFilters, role];
+            }
+        });
+    };
+
     const handleReset = () => {
-        setFilterArtist('All')
-        setFilterRole('All')
+        setFilterArtist(['All']);
+        setFilterRole(['All']);
         setSearchTerm('')
         setStartDate('')
         setEndDate('')
@@ -60,12 +82,12 @@ const Filmography = () => {
         const itemDate = item.date ? new Date(item.date).getTime() : 0;
         const start = startDate ? new Date(startDate).getTime() : -Infinity;
         const end = endDate ? new Date(endDate).getTime() : Infinity;
-        const matchArtist = filterArtist === 'All' ||
+        const matchArtist = filterArtist.includes('All') ||
             (item.artist && (
-                (typeof item.artist === 'object' && !Array.isArray(item.artist) && item.artist.name === filterArtist) ||
-                (Array.isArray(item.artist) && item.artist[0]?.name === filterArtist)
+                (typeof item.artist === 'object' && !Array.isArray(item.artist) && filterArtist.includes(item.artist.name)) ||
+                (Array.isArray(item.artist) && item.artist[0]?.name && filterArtist.includes(item.artist[0].name))
             ));
-        const matchRole = filterRole === 'All' || item.status === filterRole;
+        const matchRole = filterRole.includes('All') || filterRole.includes(item.status);
         const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
         const matchDate = itemDate >= start && itemDate <= end;
 
@@ -91,8 +113,8 @@ const Filmography = () => {
                 endDate={endDate} setEndDate={setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setFilterArtist },
-                    { label: 'Status', currentValue: filterRole, options: ['All', 'Main Role', 'Guest Role', 'Support Role'], onSelect: setFilterRole },
+                    { label: 'Artist', selectedValues: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: handleFilterArtistChange },
+                    { label: 'Status', selectedValues: filterRole, options: ['All', 'Main Role', 'Guest Role', 'Support Role'], onSelect: handleFilterRoleChange },
                 ]}
             />
 

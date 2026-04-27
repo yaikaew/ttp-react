@@ -32,8 +32,8 @@ const Performance = () => {
                 endDate={state.endDate} setEndDate={setters.setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
-                    { label: 'Type', currentValue: state.filterType, options: ['All', 'Performance', 'Cover', 'Music Video'], onSelect: setters.setFilterType }
+                    { label: 'Artist', selectedValues: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
+                    { label: 'Type', selectedValues: state.filterType, options: ['All', 'Performance', 'Cover', 'Music Video'], onSelect: setters.setFilterType }
                 ]}
             />
 

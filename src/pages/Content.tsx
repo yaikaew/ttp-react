@@ -32,8 +32,8 @@ const Content = () => {
                 endDate={state.endDate} setEndDate={setters.setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
-                    { label: 'Type', currentValue: state.filterType, options: ['All', 'Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Interview', 'Live Event'], onSelect: setters.setFilterType }
+                    { label: 'Artist', selectedValues: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
+                    { label: 'Type', selectedValues: state.filterType, options: ['All', 'Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Interview', 'Live Event'], onSelect: setters.setFilterType }
                 ]}
             />
 

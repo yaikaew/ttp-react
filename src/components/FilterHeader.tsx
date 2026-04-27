@@ -17,7 +17,7 @@ interface FilterHeaderProps {
     setEndDate: (date: string) => void;
     filterGroups: {
         label: string;
-        currentValue: string;
+        selectedValues: string[];
         options: string[];
         onSelect: (value: string) => void;
     }[];
@@ -118,7 +118,7 @@ const FilterHeader = ({
                                                 key={opt}
                                                 onClick={() => group.onSelect(opt)}
                                                 className={`px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 border-2
-                                            ${group.currentValue === opt
+                                            ${group.selectedValues.includes(opt)
                                                         ? 'bg-brand-primary text-white border-brand-primary shadow-lg shadow-brand-primary/20 scale-105'
                                                         : 'bg-transparent text-brand-primary border-brand-primary/10 hover:border-brand-primary/40'}`}
                                             >

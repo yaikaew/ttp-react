@@ -7,16 +7,27 @@ import CalendarCard, { type CalendarEvent } from '../components/CalendarCard';
 
 const Calendar = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false)
-    const [filterArtist, setFilterArtist] = useState('All')
+    const [filterArtist, setFilterArtist] = useState<string[]>(['All'])
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('asc')
     const [searchTerm, setSearchTerm] = useState('')
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
 
+    const handleFilterArtistChange = (artist: string) => {
+        setFilterArtist(prev => {
+            if (prev.includes(artist)) {
+                return prev.filter(a => a !== artist);
+            } else {
+                const newFilters = prev.filter(a => a !== 'All');
+                return [...newFilters, artist];
+            }
+        });
+    };
+
     const { schedule, loading, refreshSchedule } = useCalendar();
 
     const handleReset = () => {
-        setFilterArtist('All'); setSearchTerm(''); setStartDate(''); setEndDate(''); setSortOrder('asc');
+        setFilterArtist(['All']); setSearchTerm(''); setStartDate(''); setEndDate(''); setSortOrder('asc');
     }
 
     // --- LOGIC 1: FILTERING & SORTING ---
@@ -40,7 +51,7 @@ const Calendar = () => {
             const end = endDate ? new Date(endDate + 'T23:59:59').getTime() : Infinity;
 
             const artistName = Array.isArray(item.artist) ? item.artist[0]?.name : item.artist?.name;
-            const matchArtist = filterArtist === 'All' || artistName === filterArtist;
+            const matchArtist = filterArtist.includes('All') || (artistName && filterArtist.includes(artistName));
             const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
             const matchDate = itemTime >= start && itemTime <= end;
 
@@ -79,7 +90,7 @@ const Calendar = () => {
                 endDate={endDate} setEndDate={setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', currentValue: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX', 'BokBear'], onSelect: setFilterArtist },
+                    { label: 'Artist', selectedValues: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX', 'BokBear'], onSelect: handleFilterArtistChange },
                 ]}
             />
 
