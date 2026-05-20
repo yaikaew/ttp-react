@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Edit, Trash2, Megaphone, CalendarPlus, InfoIcon } from 'lucide-react';
+import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Edit, Trash2, Megaphone, CalendarPlus } from 'lucide-react';
 import { getArtistTheme, getDOWTheme } from '../utils/theme';
 import { getDatetimeLocalValueFromBangkokDatetimetz, getTimeFromDatetimetz } from '../utils/calendarHelpers';
 import { Button } from '../components/Button';
