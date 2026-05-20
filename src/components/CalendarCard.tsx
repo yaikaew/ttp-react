@@ -113,7 +113,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
 
     const isToday = eventBangkok === todayBangkok;
 
-    const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link || event.info_link || event.note;
+    const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link || event.note;
 
     const handleEdit = async () => {
         try {
@@ -234,6 +234,13 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                     <span>{event.live_platform}</span>
                                 </div>
                             )}
+
+                            {event.note && (
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 w-fit bg-page-bg/50 rounded-xl text-content-text-sub text-xs font-medium border border-brand-sidebar-border/50">
+                                    <Megaphone className="w-3.5 h-3.5 text-brand-primary" />
+                                    {event.note}
+                                </div>
+                            )}
                         </div>
 
                         {/* ฝั่งขวา: ปุ่มลูกศร และปุ่ม admin */}
@@ -327,14 +334,6 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                     </div>
                                 )}
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                                {event.note && (
-                                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-page-bg/50 rounded-xl text-content-text-sub text-xs font-medium border border-brand-sidebar-border/50">
-                                        <Megaphone className="w-3.5 h-3.5 text-brand-primary" />
-                                        {event.note}
-                                    </div>
-                                )}
-                            </div>
 
                             <div className="flex gap-2">
                                 {event.rerun_link && (
@@ -350,7 +349,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                     </a>
                                 )}
 
-                                {event.info_link && (
+                                {/* {event.info_link && (
                                     <a
                                         href={event.info_link}
                                         target="_blank"
@@ -361,7 +360,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                                         <InfoIcon className="w-4 h-4" />
                                         <span>รายละเอียดเพิ่มเติม</span>
                                     </a>
-                                )}
+                                )} */}
                             </div>
                         </div>
                     )}
