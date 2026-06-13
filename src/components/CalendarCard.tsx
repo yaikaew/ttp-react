@@ -113,7 +113,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
 
     const isToday = eventBangkok === todayBangkok;
 
-    const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link || event.note;
+    const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link;
 
     const handleEdit = async () => {
         try {
