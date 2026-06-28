@@ -27,6 +27,32 @@ export const calendarService = {
     return data || [];
   },
 
+  async createEvent(insert: {
+    artist_id: number;
+    datetimetz: string;
+    dmd?: string | null;
+    hashtag?: string | null;
+    info_link?: string | null;
+    keyword?: string | null;
+    live_platform?: string | null;
+    location?: string | null;
+    name: string;
+    note?: string | null;
+    outfit?: string | null;
+    outfit_img?: string | null;
+    poster_url?: string | null;
+    rerun_link?: string | null;
+    type?: string | null;
+  }) {
+    const { data, error } = await supabase
+      .from("calendar")
+      .insert(insert)
+      .select();
+
+    if (error) throw error;
+    return data?.[0] ?? null;
+  },
+
   async updateEvent(id: number, updates: Partial<{
     artist_id: number;
     datetimetz: string;
