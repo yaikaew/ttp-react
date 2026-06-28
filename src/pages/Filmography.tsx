@@ -1,134 +1,47 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import type { Database } from '../types/supabase';
-import { CirclePlay, Layout } from 'lucide-react';
-import FilterHeader from '../components/FilterHeader'
-import { LoadingState } from '../components/LoadingState'
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useFilmography } from '../hooks/useFilmography';
+import { useFilter } from '../hooks/useFilter';
+import FilterHeader from '../components/FilterHeader';
+import { LoadingState } from '../components/LoadingState';
 import { NoResults } from '../components/NoResults';
-import { Button } from '../components/Button';
 
-type FilmWithArtist = Database['public']['Tables']['filmography']['Row'] & {
-    artist: { name: string } | null;
-};
 const Filmography = () => {
-    const [isFilterOpen, setIsFilterOpen] = useState(false)
-    const [filterArtist, setFilterArtist] = useState<string[]>(['All'])
-    const [filterRole, setFilterRole] = useState<string[]>(['All'])
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-    const [searchTerm, setSearchTerm] = useState('')
-    const [startDate, setStartDate] = useState('')
-    const [endDate, setEndDate] = useState('')
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-    const [films, setFilms] = useState<FilmWithArtist[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { filmography, loading } = useFilmography();
 
-    useEffect(() => {
-        const fetchFilms = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('filmography')
-                    .select(`
-                    *,
-                    artist (name) 
-                `) // Join ตาราง artist เพื่อเอา name มาใช้
-                    .order('date', { ascending: false });
-                if (data) {
-                    console.log("Sample Data:", data[0]); // ดูว่า artist name มาในรูปแบบไหน
-                    setFilms(data);
-                }
-                if (error) throw error;
-                setFilms(data || []);
-            } catch (error) {
-                console.error('Error:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchFilms();
-    }, []);
+    const {
+        state,
+        setters,
+        handleReset,
+        filteredItems
+    } = useFilter(filmography || []);
 
-    const handleFilterArtistChange = (artist: string) => {
-        setFilterArtist(prev => {
-            if (prev.includes(artist)) {
-                return prev.filter(a => a !== artist);
-            } else {
-                const newFilters = prev.filter(a => a !== 'All');
-                return [...newFilters, artist];
-            }
-        });
-    };
-
-    const handleFilterRoleChange = (role: string) => {
-        setFilterRole(prev => {
-            if (prev.includes(role)) {
-                return prev.filter(r => r !== role);
-            } else {
-                const newFilters = prev.filter(r => r !== 'All');
-                return [...newFilters, role];
-            }
-        });
-    };
-
-    const handleReset = () => {
-        setFilterArtist(['All']);
-        setFilterRole(['All']);
-        setSearchTerm('')
-        setStartDate('')
-        setEndDate('')
-        setSortOrder('desc')
-    }
-
-    const filteredItems = films.filter(item => {
-        const itemDate = item.date ? new Date(item.date).getTime() : 0;
-        const start = startDate ? new Date(startDate).getTime() : -Infinity;
-        const end = endDate ? new Date(endDate).getTime() : Infinity;
-        const matchArtist = filterArtist.includes('All') ||
-            (item.artist && (
-                (typeof item.artist === 'object' && !Array.isArray(item.artist) && filterArtist.includes(item.artist.name)) ||
-                (Array.isArray(item.artist) && item.artist[0]?.name && filterArtist.includes(item.artist[0].name))
-            ));
-        const matchRole = filterRole.includes('All') || (item.status && filterRole.includes(item.status));
-        const matchSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchDate = itemDate >= start && itemDate <= end;
-
-        return matchArtist && matchRole && matchSearch && matchDate;
-    });
-
-    const sortedItems = [...filteredItems].sort((a, b) => {
-        const dateA = a.date ? new Date(a.date).getTime() : 0;
-        const dateB = b.date ? new Date(b.date).getTime() : 0;
-        return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-    });
-
-    if (isLoading) return <LoadingState />
+    if (loading) return <LoadingState />;
 
     return (
         <div className="max-w-7xl mx-auto min-h-screen pb-20">
             <FilterHeader
                 title="Filmography" subtitle="Acting History"
                 isFilterOpen={isFilterOpen} setIsFilterOpen={setIsFilterOpen}
-                sortOrder={sortOrder} setSortOrder={setSortOrder}
-                searchTerm={searchTerm} setSearchTerm={setSearchTerm}
-                startDate={startDate} setStartDate={setStartDate}
-                endDate={endDate} setEndDate={setEndDate}
+                sortOrder={state.sortOrder} setSortOrder={setters.setSortOrder}
+                searchTerm={state.searchTerm} setSearchTerm={setters.setSearchTerm}
+                startDate={state.startDate} setStartDate={setters.setStartDate}
+                endDate={state.endDate} setEndDate={setters.setEndDate}
                 onReset={handleReset}
                 filterGroups={[
-                    { label: 'Artist', selectedValues: filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: handleFilterArtistChange },
-                    { label: 'Status', selectedValues: filterRole, options: ['All', 'Main Role', 'Guest Role', 'Support Role'], onSelect: handleFilterRoleChange },
+                    { label: 'Artist', selectedValues: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
+                    { label: 'Status', selectedValues: state.filterType, options: ['All', 'Main Role', 'Guest Role', 'Support Role'], onSelect: setters.setFilterType }
                 ]}
             />
 
-            {/* Grid Layout */}
             <div className="px-4">
-                {sortedItems.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
-                        {sortedItems.map((item) => {
+                {filteredItems.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                        {filteredItems.map((item) => {
                             return (
-                                <div
-                                    key={item.id}
-                                    className="group flex flex-col bg-card-bg rounded-2xl p-3 border border-card-border shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-brand-primary/10"
-                                >
-                                    {/* Image Section */}
+                                <div key={item.id} className="group flex flex-col bg-card-bg rounded-2xl p-3 border border-card-border shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-brand-primary/10">
                                     <div className="relative aspect-4/5 overflow-hidden rounded-2xl bg-card-bg mb-4">
                                         <img
                                             src={item.poster || ''}
@@ -145,7 +58,6 @@ const Filmography = () => {
                                         </div>
                                     </div>
 
-                                    {/* Content Section */}
                                     <div className="px-1 flex flex-col grow">
                                         <div className="flex items-center justify-between mb-1.5">
                                             <span className="text-[9px] font-bold text-content-text-muted uppercase tracking-widest">
@@ -157,7 +69,6 @@ const Filmography = () => {
                                             {item.title}
                                         </h3>
 
-                                        {/* Roles Info */}
                                         <div className="flex items-start gap-3 mb-5 pb-4 border-b border-blue-50/50">
                                             <div className="flex-1 min-w-0 border-l-2 border-purple-100 pl-2">
                                                 <span className="text-xs font-bold text-purple-400 uppercase block mb-0.5">Teetee</span>
@@ -168,32 +79,37 @@ const Filmography = () => {
                                                 <p className="text-sm text-content-text-sub truncate">{item.role_por}</p>
                                             </div>
                                         </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="mt-auto grid grid-cols-2 gap-2">
-                                            <Button
-                                                href={`/filmography/${item.id}`}
-                                                target=""
-                                                rel="noreferrer"
-                                                size="sm"
-                                                icon={Layout}
-                                            >
-                                                Detail
-                                            </Button>
-                                            <Button
-                                                variant="primary"
-                                                href={item.rerun_link || ''}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                size="sm"
-                                                icon={CirclePlay}
-                                            >
-                                                Watch
-                                            </Button>
-                                        </div>
                                     </div>
+
+                                    <div className="mt-auto grid grid-cols-2 gap-2">
+                                        <Link
+                                            to={`/filmography/${item.id}`}
+                                            className="inline-flex items-center justify-center gap-2
+                                                        rounded-xl font-bold
+                                                        transition-all duration-300
+                                                        active:scale-95 disabled:opacity-50 disabled:pointer-events-none
+                                                        py-2 px-4 text-[10px] uppercase tracking-widest
+                                                        bg-brand-primary-light/80 backdrop-blur-sm border border-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white hover:shadow-lg hover:shadow-brand-primary/20"
+                                        >
+                                            Detail
+                                        </Link>
+                                        <a
+                                            href={item.rerun_link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center justify-center gap-2
+                                                        rounded-xl font-bold
+                                                        transition-all duration-300
+                                                        active:scale-95 disabled:opacity-50 disabled:pointer-events-none
+                                                        py-2 px-4 text-[10px] uppercase tracking-widest
+                                                        bg-brand-primary text-white border border-brand-primary/10 hover:bg-brand-primary-light/80 backdrop-blur-sm hover:text-brand-primary"
+                                        >
+                                            Watch
+                                        </a>
+                                    </div>
+
                                 </div>
-                            )
+                            );
                         })}
                     </div>
                 ) : (

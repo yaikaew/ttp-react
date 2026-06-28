@@ -86,8 +86,9 @@ export const useFilter = <T extends FilterableItem>(initialData: T[]) => {
         // 3. Filter Type - Support multiple selections
         const matchType =
           filterType.includes("All") ||
-          (typeof item.result === 'string' && filterType.includes(item.result)) ||
-          (item.type && filterType.includes(item.type));
+          (typeof (item as any).result === "string" && filterType.includes((item as any).result)) ||
+          (typeof item.type === "string" && filterType.includes(item.type)) ||
+          (typeof (item as any).status === "string" && filterType.includes((item as any).status));
 
         // 4. Filter Search
         const nameToSearch = (item.title || item.name || "").toLowerCase();

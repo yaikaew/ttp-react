@@ -38,11 +38,7 @@ export const DOW_THEME_MAP: Record<number, string> = {
 
 // --- Type Themes ---
 export const TYPE_THEME_MAP: Record<string, ThemeOption> = {
-  Single: {
-    bg: "bg-rose-50",
-    text: "text-rose-600",
-    border: "border-rose-100",
-  },
+  Single: { bg: "bg-rose-50", text: "text-rose-600", border: "border-rose-100" },
   "Music Video": { bg: "bg-rose-50", text: "text-rose-600", border: "border-rose-100" },
   Performance: {
     bg: "bg-sky-50",
@@ -59,41 +55,14 @@ export const TYPE_THEME_MAP: Record<string, ThemeOption> = {
     text: "text-violet-600",
     border: "border-violet-100",
   },
-  Concert: {
-    bg: "bg-rose-50",
-    text: "text-rose-600",
-    border: "border-rose-100",
-  },
-  Event: {
-    bg: "bg-indigo-50",
-    text: "text-indigo-600",
-    border: "border-indigo-100",
-  },
-  "Private Event": {
-    bg: "bg-red-50",
-    text: "text-red-600",
-    border: "border-red-100",
-  },
-  "Fan Meet": {
-    bg: "bg-sky-50",
-    text: "text-sky-600",
-    border: "border-sky-100",
-  },
-  "Fan Sign": {
-    bg: "bg-amber-50",
-    text: "text-amber-600",
-    border: "border-amber-100",
-  },
-  "Press Tour": {
-    bg: "bg-violet-50",
-    text: "text-violet-600",
-    border: "border-violet-100",
-  },
-  Online: {
-    bg: "bg-green-50",
-    text: "text-green-600",
-    border: "border-green-100",
-  },
+  "Online Shows": { bg: "bg-green-50", text: "text-green-600", border: "border-green-100", },
+  "BTS": { bg: "bg-pink-50", text: "text-pink-600", border: "border-pink-100" },
+  "Press Tour": { bg: "bg-blue-50", text: "text-blue-600", border: "border-blue-100" },
+  "Press Cons": { bg: "bg-indigo-50", text: "text-indigo-600", border: "border-indigo-100" },
+  "Reaction": { bg: "bg-yellow-50", text: "text-yellow-600", border: "border-yellow-100" },
+  "Live": { bg: "bg-red-50", text: "text-red-600", border: "border-red-100" },
+  "Interview": { bg: "bg-teal-50", text: "text-teal-600", border: "border-teal-100" },
+  "Live Event": { bg: "bg-orange-50", text: "text-orange-600", border: "border-orange-100" }
 };
 
 // --- Helper Functions ---

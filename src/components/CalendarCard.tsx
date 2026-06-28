@@ -1,10 +1,35 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Edit, Trash2, Megaphone, CalendarPlus } from 'lucide-react';
+import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Megaphone, CalendarPlus, Edit } from 'lucide-react';
 import { getArtistTheme, getDOWTheme } from '../utils/theme';
-import { getDatetimeLocalValueFromBangkokDatetimetz, getTimeFromDatetimetz } from '../utils/calendarHelpers';
-import { Button } from '../components/Button';
-import { useAdminAuth } from '../hooks/useAdminAuth';
 import { calendarService } from '../services/calendarService';
+
+const parseDatetimetz = (value: string) => {
+    const normalized = value.replace(' ', 'T');
+    const date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? new Date(value) : date;
+};
+
+const getTimeFromDatetimetz = (value: string) => {
+    const date = parseDatetimetz(value);
+    const rawTime = date.toLocaleTimeString('th-TH', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Bangkok',
+    });
+    return rawTime === '00:00' ? 'TBA' : rawTime;
+};
+
+const formatToDatetimeLocal = (value: string) => {
+    const date = new Date(value);
+    const offsetMinutes = date.getTimezoneOffset();
+    const local = new Date(date.getTime() - offsetMinutes * 60000);
+    return local.toISOString().slice(0, 16);
+};
+
+const parseFromDatetimeLocal = (value: string) => {
+    return new Date(value).toISOString();
+};
 
 export interface CalendarEvent {
     artist_id: number;
@@ -28,58 +53,40 @@ export interface CalendarEvent {
 
 interface CalendarCardProps {
     event: CalendarEvent;
-    onEventUpdate?: () => void;
+    isEditable?: boolean;
+    onUpdated?: () => void;
 }
 
-const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
+const CalendarCard = ({ event, isEditable = false, onUpdated }: CalendarCardProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [editForm, setEditForm] = useState({
-        id: event.id,
-        artist_id: event.artist_id,
-        name: event.name,
-        datetimetz: event.datetimetz,
-        location: event.location || '',
-        live_platform: event.live_platform || '',
-        keyword: event.keyword || '',
-        hashtag: event.hashtag || '',
-        rerun_link: event.rerun_link || '',
-        info_link: event.info_link || '',
-        note: event.note || '',
-        outfit: event.outfit || '',
-        outfit_img: event.outfit_img || '',
-        poster_url: event.poster_url || '',
-        dmd: event.dmd || '',
-    });
-    const [artists, setArtists] = useState<{ id: number; name: string }[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [eventDetails, setEventDetails] = useState<CalendarEvent | null>(null);
+    const [detailsLoading, setDetailsLoading] = useState(false);
+    const [detailsError, setDetailsError] = useState<string | null>(null);
+    const [artistOptions, setArtistOptions] = useState<Array<{ id: number; name: string }>>([]);
+    const [editedArtistId, setEditedArtistId] = useState<number>(event.artist_id);
+    const [editedName, setEditedName] = useState(event.name);
+    const [editedDatetimetz, setEditedDatetimetz] = useState(formatToDatetimeLocal(event.datetimetz));
+    const [editedLocation, setEditedLocation] = useState(event.location ?? '');
+    const [editedLivePlatform, setEditedLivePlatform] = useState(event.live_platform ?? '');
+    const [editedPosterUrl, setEditedPosterUrl] = useState(event.poster_url ?? '');
+    const [editedKeyword, setEditedKeyword] = useState(event.keyword ?? '');
+    const [editedHashtag, setEditedHashtag] = useState(event.hashtag ?? '');
+    const [editedInfoLink, setEditedInfoLink] = useState(event.info_link ?? '');
+    const [editedRerunLink, setEditedRerunLink] = useState(event.rerun_link ?? '');
+    const [editedNote, setEditedNote] = useState(event.note ?? '');
+    const [editedDmd, setEditedDmd] = useState(event.dmd ?? '');
+    const [editedOutfit, setEditedOutfit] = useState(event.outfit ?? '');
+    const [editedOutfitImg, setEditedOutfitImg] = useState(event.outfit_img ?? '');
+    const [updateLoading, setUpdateLoading] = useState(false);
+    const [updateError, setUpdateError] = useState<string | null>(null);
 
     useEffect(() => {
-        const loadArtists = async () => {
-            try {
-                const artistData = await calendarService.getArtists();
-                setArtists(artistData);
-            } catch (error) {
-                console.error('Failed to load artists:', error);
-            }
-        };
-        loadArtists();
-    }, []);
-
-    // Lock scroll when modal is open
-    useEffect(() => {
-        if (isEditModalOpen) {
-            document.body.classList.add('overflow-hidden');
-        } else {
-            document.body.classList.remove('overflow-hidden');
-        }
-
-        // Cleanup on unmount
+        document.body.style.overflow = isModalOpen ? 'hidden' : '';
         return () => {
-            document.body.classList.remove('overflow-hidden');
+            document.body.style.overflow = '';
         };
-    }, [isEditModalOpen]);
-
-    const { user } = useAdminAuth();
+    }, [isModalOpen]);
 
     const artistName = Array.isArray(event.artist)
         ? event.artist[0]?.name
@@ -115,26 +122,66 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
 
     const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link;
 
-    const handleEdit = async () => {
+    const handleOpenEditModal = async () => {
+        setIsModalOpen(true);
+        setDetailsError(null);
+        setDetailsLoading(true);
+
         try {
-            await calendarService.updateEvent(event.id, editForm);
-            setIsEditModalOpen(false);
-            onEventUpdate?.();
-        } catch (error) {
-            console.error('Failed to update event:', error);
-            alert('Failed to update event');
+            const [details, artists] = await Promise.all([
+                calendarService.getEventById(event.id),
+                calendarService.getArtists(),
+            ]);
+            setEventDetails(details);
+            setArtistOptions(artists.sort((a, b) => a.name.localeCompare(b.name)));
+            setEditedArtistId(details.artist_id);
+            setEditedName(details.name);
+            setEditedDatetimetz(formatToDatetimeLocal(details.datetimetz));
+            setEditedLocation(details.location ?? '');
+            setEditedLivePlatform(details.live_platform ?? '');
+            setEditedPosterUrl(details.poster_url ?? '');
+            setEditedKeyword(details.keyword ?? '');
+            setEditedHashtag(details.hashtag ?? '');
+            setEditedInfoLink(details.info_link ?? '');
+            setEditedRerunLink(details.rerun_link ?? '');
+            setEditedNote(details.note ?? '');
+            setEditedDmd(details.dmd ?? '');
+            setEditedOutfit(details.outfit ?? '');
+            setEditedOutfitImg(details.outfit_img ?? '');
+        } catch (err) {
+            setDetailsError((err as Error).message);
+        } finally {
+            setDetailsLoading(false);
         }
     };
 
-    const handleDelete = async () => {
-        if (confirm('Are you sure you want to delete this event?')) {
-            try {
-                await calendarService.deleteEvent(event.id);
-                onEventUpdate?.();
-            } catch (error) {
-                console.error('Failed to delete event:', error);
-                alert('Failed to delete event');
-            }
+    const handleSave = async () => {
+        setUpdateLoading(true);
+        setUpdateError(null);
+
+        try {
+            await calendarService.updateEvent(event.id, {
+                artist_id: editedArtistId,
+                name: editedName,
+                location: editedLocation || null,
+                live_platform: editedLivePlatform || null,
+                poster_url: editedPosterUrl || null,
+                keyword: editedKeyword || null,
+                hashtag: editedHashtag || null,
+                info_link: editedInfoLink || null,
+                rerun_link: editedRerunLink || null,
+                note: editedNote || null,
+                dmd: editedDmd || null,
+                outfit: editedOutfit || null,
+                outfit_img: editedOutfitImg || null,
+                datetimetz: parseFromDatetimeLocal(editedDatetimetz),
+            });
+            setIsModalOpen(false);
+            onUpdated?.();
+        } catch (err) {
+            setUpdateError((err as Error).message);
+        } finally {
+            setUpdateLoading(false);
         }
     };
 
@@ -147,7 +194,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
         if (event.live_platform) detailsParts.push(`🎥 : ${event.live_platform}`);
         if (event.note) detailsParts.push(`📢 : ${event.note}`);
 
-        const group2 = [];
+        const group2: string[] = [];
         if (event.keyword) group2.push(`🔑 : ${event.keyword}`);
         if (event.hashtag) group2.push(`#️⃣ : ${event.hashtag}`);
         if (group2.length > 0) {
@@ -164,7 +211,7 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
 
         const startDate = new Date(event.datetimetz);
         // Set duration to be the same as start time
-        const endDate = startDate;
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
 
         const formatToGoogleCalendarDate = (date: Date) => {
             return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
@@ -255,46 +302,17 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                             >
                                 <CalendarPlus className="w-4 h-4" />
                             </button>
-                            {user && (
-                                <>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditForm({
-                                                id: event.id,
-                                                artist_id: event.artist_id,
-                                                name: event.name,
-                                                datetimetz: event.datetimetz,
-                                                location: event.location || '',
-                                                live_platform: event.live_platform || '',
-                                                keyword: event.keyword || '',
-                                                hashtag: event.hashtag || '',
-                                                rerun_link: event.rerun_link || '',
-                                                info_link: event.info_link || '',
-                                                note: event.note || '',
-                                                outfit: event.outfit || '',
-                                                outfit_img: event.outfit_img || '',
-                                                poster_url: event.poster_url || '',
-                                                dmd: event.dmd || '',
-                                            });
-                                            setIsEditModalOpen(true);
-                                        }}
-                                        className="p-1.5 rounded-full bg-blue-500/20 text-blue-600 hover:bg-blue-500/30 transition-all duration-300"
-                                        title="Edit event"
-                                    >
-                                        <Edit className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete();
-                                        }}
-                                        className="p-1.5 rounded-full bg-red-500/20 text-red-600 hover:bg-red-500/30 transition-all duration-300"
-                                        title="Delete event"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </>
+                            {isEditable && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenEditModal();
+                                    }}
+                                    className="p-1.5 rounded-full bg-blue-500/20 text-blue-600 hover:bg-blue-500/30 transition-all duration-300"
+                                    title="Edit event"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                </button>
                             )}
                             {hasMoreInfo && (
                                 <button
@@ -364,186 +382,200 @@ const CalendarCard = ({ event, onEventUpdate }: CalendarCardProps) => {
                             </div>
                         </div>
                     )}
+
+                    {isModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                            <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/10">
+                                <div className="flex items-center justify-between border-b border-brand-sidebar-border/50 px-6 py-4">
+                                    <div>
+                                        <div className="text-lg font-bold">Edit Event</div>
+                                        <div className="text-xs text-content-text-sub">{event.name}</div>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="text-xl font-black text-content-text-sub hover:text-content-text-main"
+                                        title="Close"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+
+                                <div className="max-h-[70vh] overflow-y-auto p-6 space-y-5">
+                                    {detailsLoading ? (
+                                        <div className="text-sm text-content-text-sub">Loading event details...</div>
+                                    ) : detailsError ? (
+                                        <div className="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">
+                                            {detailsError}
+                                        </div>
+                                    ) : eventDetails ? (
+                                        <div className="space-y-5">
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Artist</label>
+                                                    <select
+                                                        value={editedArtistId}
+                                                        onChange={(e) => setEditedArtistId(Number(e.target.value))}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    >
+                                                        {artistOptions.map((artist) => (
+                                                            <option key={artist.id} value={artist.id}>
+                                                                {artist.name}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Name</label>
+                                                    <input
+                                                        value={editedName}
+                                                        onChange={(e) => setEditedName(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Date / Time</label>
+                                                    <input
+                                                        type="datetime-local"
+                                                        value={editedDatetimetz}
+                                                        onChange={(e) => setEditedDatetimetz(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Location</label>
+                                                    <input
+                                                        value={editedLocation}
+                                                        onChange={(e) => setEditedLocation(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Live platform</label>
+                                                    <input
+                                                        value={editedLivePlatform}
+                                                        onChange={(e) => setEditedLivePlatform(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Poster URL</label>
+                                                    <input
+                                                        value={editedPosterUrl}
+                                                        onChange={(e) => setEditedPosterUrl(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Keyword</label>
+                                                    <input
+                                                        value={editedKeyword}
+                                                        onChange={(e) => setEditedKeyword(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Hashtag</label>
+                                                    <input
+                                                        value={editedHashtag}
+                                                        onChange={(e) => setEditedHashtag(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Info link</label>
+                                                    <input
+                                                        value={editedInfoLink}
+                                                        onChange={(e) => setEditedInfoLink(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Rerun link</label>
+                                                    <input
+                                                        value={editedRerunLink}
+                                                        onChange={(e) => setEditedRerunLink(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Outfit</label>
+                                                    <input
+                                                        value={editedOutfit}
+                                                        onChange={(e) => setEditedOutfit(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Outfit Image URL</label>
+                                                    <input
+                                                        value={editedOutfitImg}
+                                                        onChange={(e) => setEditedOutfitImg(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">DMD</label>
+                                                    <input
+                                                        value={editedDmd}
+                                                        onChange={(e) => setEditedDmd(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Note</label>
+                                                    <textarea
+                                                        value={editedNote}
+                                                        onChange={(e) => setEditedNote(e.target.value)}
+                                                        className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {updateError && <div className="rounded-2xl bg-rose-50 p-3 text-sm text-rose-700">{updateError}</div>}
+
+                                            <div className="flex flex-wrap justify-end gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsModalOpen(false)}
+                                                    className="rounded-2xl border border-brand-sidebar-border/70 px-5 py-3 text-xs uppercase tracking-widest font-bold text-content-text-main hover:bg-brand-sidebar-border/20 transition"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleSave}
+                                                    disabled={updateLoading}
+                                                    className="rounded-2xl bg-brand-primary px-3 py-3 text-xs uppercase tracking-widest font-bold text-white hover:bg-brand-primary/90 transition disabled:opacity-60"
+                                                >
+                                                    {updateLoading ? 'Saving...' : 'Save changes'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
-
-            {/* Edit Modal */}
-            {isEditModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-card-bg rounded-3xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-brand-sidebar-border">
-                        <h2 className="text-xl font-bold text-content-text-main mb-6">Edit Event</h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Artist *</label>
-                                <select
-                                    value={editForm.artist_id}
-                                    onChange={(e) => setEditForm({ ...editForm, artist_id: parseInt(e.target.value) })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                    required
-                                >
-                                    <option value="">Select Artist</option>
-                                    {artists.map((artist) => (
-                                        <option key={artist.id} value={artist.id}>
-                                            {artist.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Name *</label>
-                                <input
-                                    type="text"
-                                    value={editForm.name}
-                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Date & Time *</label>
-                                <input
-                                    type="datetime-local"
-                                    value={getDatetimeLocalValueFromBangkokDatetimetz(editForm.datetimetz)}
-                                    onChange={(e) => setEditForm({ ...editForm, datetimetz: `${e.target.value}:00+07:00` })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                    required
-                                />
-                                <p className="mt-1 text-[11px] text-content-text-sub">แสดงเวลาในโซน Asia/Bangkok (UTC+7)</p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Location</label>
-                                <input
-                                    type="text"
-                                    value={editForm.location}
-                                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Live Platform</label>
-                                <input
-                                    type="text"
-                                    value={editForm.live_platform}
-                                    onChange={(e) => setEditForm({ ...editForm, live_platform: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Keyword</label>
-                                <input
-                                    type="text"
-                                    value={editForm.keyword}
-                                    onChange={(e) => setEditForm({ ...editForm, keyword: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Hashtag</label>
-                                <input
-                                    type="text"
-                                    value={editForm.hashtag}
-                                    onChange={(e) => setEditForm({ ...editForm, hashtag: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Rerun Link</label>
-                                <input
-                                    type="url"
-                                    value={editForm.rerun_link}
-                                    onChange={(e) => setEditForm({ ...editForm, rerun_link: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Info Link</label>
-                                <input
-                                    type="url"
-                                    value={editForm.info_link}
-                                    onChange={(e) => setEditForm({ ...editForm, info_link: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Note</label>
-                                <textarea
-                                    value={editForm.note}
-                                    onChange={(e) => setEditForm({ ...editForm, note: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                    rows={3}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Outfit</label>
-                                <input
-                                    type="text"
-                                    value={editForm.outfit}
-                                    onChange={(e) => setEditForm({ ...editForm, outfit: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Outfit Image URL</label>
-                                <input
-                                    type="url"
-                                    value={editForm.outfit_img}
-                                    onChange={(e) => setEditForm({ ...editForm, outfit_img: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">Poster URL</label>
-                                <input
-                                    type="url"
-                                    value={editForm.poster_url}
-                                    onChange={(e) => setEditForm({ ...editForm, poster_url: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-content-text-main mb-2">DMD</label>
-                                <input
-                                    type="text"
-                                    value={editForm.dmd}
-                                    onChange={(e) => setEditForm({ ...editForm, dmd: e.target.value })}
-                                    className="w-full px-3 py-2 bg-page-bg border border-brand-sidebar-border rounded-xl text-content-text-main"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 justify-end">
-                            <Button
-                                variant="secondary"
-                                as="button"
-                                onClick={() => setIsEditModalOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="primary"
-                                as="button"
-                                onClick={handleEdit}
-                            >
-                                Save Changes
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

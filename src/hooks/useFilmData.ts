@@ -1,37 +1,66 @@
-import { useState, useEffect } from "react";
-import { filmService } from "../services/filmService";
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
-// 1. แทนที่จะ Import Interface ที่เขียนเอง เราจะแกะ Type ออกจากฟังก์ชันใน Service เลย
-// วิธีนี้ฉลาดมาก เพราะถ้า Service ดึงตารางเพิ่ม Type ใน Hook จะเปลี่ยนตามทันที
-type FilmFullData = Awaited<ReturnType<typeof filmService.getFilmFullData>>;
-
-export const useFilmData = (filmId: number) => {
-  // 2. ใช้ Type ที่เราแกะออกมา (FilmFullData)
-  const [film, setFilm] = useState<FilmFullData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const useFilmData = (id?: number | null) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [film, setFilm] = useState<any | null>(null);
+  const [filmographydetail, setFilmographydetail] = useState<any | null>(null);
+  const [filmographytrends, setFilmographytrends] = useState<any[]>([]);
+  const [error, setError] = useState<any | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    if (!id) return;
+    let mounted = true;
+    setLoading(true);
+
+    (async () => {
       try {
-        setLoading(true);
-        const data = await filmService.getFilmFullData(filmId);
-        setFilm(data);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError(String(err));
-        }
+        const { data: filmData, error: filmError } = await supabase
+          .from('filmography')
+          .select('*, artist:artist_id ( name )')
+          .eq('id', id)
+          .maybeSingle();
+        if (filmError) throw filmError;
+
+        const { data: detailData, error: detailError } = await supabase
+          .from('filmographydetail')
+          .select('*')
+          .eq('filmography_id', id)
+          .maybeSingle();
+        if (detailError) throw detailError;
+
+        const { data: trendsData, error: trendsError } = await supabase
+          .from('filmographytrends')
+          .select('*')
+          .eq('filmography_id', id)
+          .order('air_date', { ascending: true });
+        if (trendsError) throw trendsError;
+
+        if (!mounted) return;
+        setFilm(
+          filmData
+            ? {
+                ...filmData,
+                filmographydetail: detailData,
+                filmographytrends: trendsData || [],
+              }
+            : null,
+        );
+        setFilmographydetail(detailData || null);
+        setFilmographytrends(trendsData || []);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err);
       } finally {
+        if (!mounted) return;
         setLoading(false);
       }
+    })();
+
+    return () => {
+      mounted = false;
     };
+  }, [id]);
 
-    if (filmId) {
-      fetchData();
-    }
-  }, [filmId]);
-
-  return { film, loading, error };
+  return { film, filmographydetail, filmographytrends, loading, error } as const;
 };

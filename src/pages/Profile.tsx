@@ -1,138 +1,121 @@
-import React from 'react';
-import {
-    Twitter,
-    Music2,
-    Instagram,
-    Star,
-    Globe
-} from 'lucide-react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faInstagram, faTiktok, faWeibo, faXTwitter } from "@fortawesome/free-brands-svg-icons"
+import { Star, Sparkles, User, Calendar, Ruler, Weight } from 'lucide-react';
 
-// --- Configuration ---
-const mascotImageUrl = "https://pbs.twimg.com/media/HG4wkJ8akAAdH5i?format=jpg&name=medium";
-
-// --- Types ---
-interface Artist {
-    id: number;
-    nameEn: string;
-    nameTh: string;
-    roleEn: string;
-    roleTh: string;
-    birthday: string;
+interface ProfileData {
+    id: string;
+    name: string;
+    lastName: string;
+    engName: string;
+    birth: string;
     hashtag: string;
-    bioEn: string;
-    bioTh: string;
-    avatarColor: string;
-    avatarUrl: string;
-    icon: string;     // เปลี่ยนเป็น emoji string
-    socials: { platform: string; url: string; icon: React.ReactNode; color: string }[];
+    icon: string;
+    bio: string;
+    image: string;
+    socials: {
+        platform: 'instagram' | 'twitter' | 'tiktok' | 'weibo';
+        url: string;
+    }[];
 }
 
-// --- Mock Data ---
-const artists: Artist[] = [
+const profiles: ProfileData[] = [
     {
-        id: 1,
-        nameEn: "Teetee",
-        nameTh: "ตี๋ตี๋",
-        roleEn: "Wanpichit Nimitparkpoom",
-        roleTh: "วันพิชิต นิมิตภาคภูมิ",
-        birthday: "Mar 20, 2005",
-        hashtag: "#twnpich",
-        bioEn: "Specializing in dreamy pastel illustrations and character design that warms the heart.",
-        bioTh: "เชี่ยวชาญด้านภาพวาดพาสเทลชวนฝัน และการออกแบบตัวละครที่ช่วยเติมเต็มความอบอุ่นให้หัวใจ",
-        avatarColor: "bg-[#C6BBFF]",
-        avatarUrl: "https://pbs.twimg.com/media/Gt93Ot5WYAAMRKO?format=jpg&name=4096x4096",
-        icon: "🐶",
+        id: '101',
+        name: 'ตี๋ตี๋',
+        lastName: 'วันพิชิต นิมิตภาคภูมิ',
+        engName: 'Teetee Wanpichit Nimitparkpoom',
+        birth: 'Mar 20, 2005',
+        hashtag: '#twnpich',
+        icon: '🐶',
+        bio: '',
+        image: 'https://pbs.twimg.com/media/Gt93Ot5WYAAMRKO?format=jpg&name=4096x4096',
         socials: [
-            { platform: "Instagram", url: "https://www.instagram.com/twnpich/", icon: <Instagram size={18} />, color: "bg-[#C6BBFF]" },
-            { platform: "Twitter", url: "https://x.com/twnpich", icon: <Twitter size={18} />, color: "bg-[#C6BBFF]" },
-            { platform: "TikTok", url: "https://www.tiktok.com/@teetee.wpc", icon: <Music2 size={18} />, color: "bg-[#C6BBFF]" },
+            { platform: 'instagram', url: 'https://www.instagram.com/twnpich/' },
+            { platform: 'twitter', url: 'https://x.com/twnpich' },
+            { platform: 'tiktok', url: 'https://www.tiktok.com/@teetee.wpc' },
+            { platform: 'weibo', url: 'https://weibo.com/u/7978599852' }
         ]
     },
     {
-        id: 2,
-        nameEn: "Por",
-        nameTh: "ป๋อ",
-        roleEn: "Suppakarn Jirachotikul",
-        roleTh: "ศุภการ จิรโชติกุล",
-        birthday: "Oct 17, 2002",
-        hashtag: "#porsuppakarn",
-        bioEn: "Creating lo-fi beats and graphic layouts that bridge the gap between sight and sound.",
-        bioTh: "สร้างสรรค์จังหวะ Lo-fi และงานกราฟิกที่เชื่อมประสานระหว่างการมองเห็นและเสียงเพลง",
-        avatarColor: "bg-[#94DDFF]",
-        avatarUrl: "https://pbs.twimg.com/media/GuB0uEoWMAAHVIT?format=jpg&name=large",
-        icon: "🐻‍❄️",
+        id: '18',
+        name: 'ป๋อ',
+        lastName: 'ศุภการ จิรโชติกุล',
+        engName: 'Por Suppakarn Jirachotikul',
+        birth: 'Oct 17, 2002',
+        hashtag: '#porsuppakarn',
+        icon: '🐻‍❄️',
+        bio: '',
+        image: 'https://pbs.twimg.com/media/GuB0uEoWMAAHVIT?format=jpg&name=large',
         socials: [
-            { platform: "Instagram", url: "https://www.instagram.com/porsuppakarn", icon: <Instagram size={18} />, color: "bg-[#94DDFF]" },
-            { platform: "Twitter", url: "https://x.com/porsuppakarn", icon: <Twitter size={18} />, color: "bg-[#94DDFF]" },
-            { platform: "TikTok", url: "https://www.tiktok.com/@porsuppakarn", icon: <Music2 size={18} />, color: "bg-[#94DDFF]" },
+            { platform: 'instagram', url: 'https://www.instagram.com/porsuppakarn/' },
+            { platform: 'twitter', url: 'https://x.com/porsuppakarn' },
+            { platform: 'tiktok', url: 'https://www.tiktok.com/@porsuppakarn' },
+            { platform: 'weibo', url: 'https://weibo.com/u/7910928995' }
         ]
     }
 ];
 
-// --- Components ---
+const SocialIcon = ({ platform }: { platform: string }) => {
+    switch (platform) {
+        case 'instagram': return <FontAwesomeIcon icon={faInstagram} />;
+        case 'twitter': return <FontAwesomeIcon icon={faXTwitter} />;
+        case 'tiktok': return <FontAwesomeIcon icon={faTiktok} />;
+        case 'weibo': return <FontAwesomeIcon icon={faWeibo} />;
+        default: return null;
+    }
+};
 
-const ArtistCard = ({ artist }: { artist: Artist }) => {
-    const borderColor = artist.id === 1 ? 'border-[#C6BBFF]/30' : 'border-[#94DDFF]/30';
-    const textColor = artist.id === 1 ? 'text-[#A29BFE]' : 'text-[#6BCBFF]';
-    const tagBg = artist.id === 1 ? 'bg-[#C6BBFF]/10' : 'bg-[#94DDFF]/10';
-
+const ProfileCard = ({ data, isReversed }: { data: ProfileData; isReversed: boolean }) => {
     return (
-        <div className="relative group">
-            <div className="absolute inset-0 bg-card-bg rounded-[3rem] rotate-2 scale-105 group-hover:rotate-0 transition-transform duration-500 shadow-sm border border-gray-50"></div>
-            <div className={`relative bg-card-bg border-2 ${borderColor} rounded-[3rem] p-8 shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col`}>
-                <div className="flex flex-col items-center text-center flex-grow">
-                    {/* Avatar Area */}
-                    <div className={`w-40 h-40 ${artist.avatarColor} rounded-[2.5rem] mb-6 flex items-center justify-center relative overflow-hidden ring-4 ring-white shadow-inner`}>
-                        {artist.avatarUrl ? (
-                            <img
-                                src={artist.avatarUrl}
-                                alt={artist.nameEn}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <span className="text-white text-5xl font-black">{artist.nameEn[0]}</span>
-                        )}
-                        {/* Emoji icon overlay */}
-                        <div className="absolute bottom-2 right-2 bg-white w-8 h-8 rounded-full shadow-md flex items-center justify-center text-lg z-10">
-                            {artist.icon}
+        <div className="bg-card-bg rounded-[2.5rem] md:rounded-[4rem] p-6 md:p-10 mb-12 border border-card-border shadow-xl shadow-brand-primary/5 transition-all duration-500 hover:shadow-brand-primary/10 relative overflow-hidden group">
+            <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center`}>
+
+                {/* Image Section */}
+                <div className={`lg:col-span-5 ${isReversed ? 'lg:order-2' : ''}`}>
+                    <div className="relative group/img max-w-sm mx-auto">
+                        <div className="absolute -inset-1.5 bg-linear-to-tr from-brand-primary to-brand-accent rounded-[2.2rem] blur opacity-10 group-hover/img:opacity-30 transition duration-500"></div>
+                        <div className="relative rounded-4xl border-2 border-brand-primary-light overflow-hidden aspect-3/4 shadow-lg">
+                            <img src={data.image} alt={data.name} className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" />
                         </div>
                     </div>
+                </div>
 
-                    {/* Identity */}
-                    <div className="mb-4">
-                        <h3 className="text-2xl font-black text-content-text-main flex items-center justify-center gap-2">
-                            {artist.nameEn} <span className="text-content-text-sub text-lg font-medium">({artist.nameTh})</span>
-                        </h3>
-                        <p className={`text-sm font-bold ${textColor} uppercase tracking-widest mt-1`}>
-                            {artist.roleEn}
-                        </p>
-                        {/* Added Birthday & Hashtag */}
-                        <div className="flex gap-2 justify-center mt-3">
-                            <span className={`${tagBg} ${textColor} px-3 py-1 rounded-full text-[10px] font-bold`}>
-                                🎂 {artist.birthday}
-                            </span>
-                            <span className={`${tagBg} ${textColor} px-3 py-1 rounded-full text-[10px] font-bold`}>
-                                ✨ {artist.hashtag}
-                            </span>
-                        </div>
+                {/* Content Section */}
+                <div className={`lg:col-span-7 ${isReversed ? 'lg:order-1 lg:text-right' : 'lg:text-left'} text-center`}>
+                    <div className={`flex items-center gap-3 mb-6 justify-center ${isReversed ? 'lg:justify-end' : 'lg:justify-start'}`}>
+                        <span className="bg-brand-primary/10 text-brand-primary px-4 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">ID: {data.id}</span>
+                        <div className="h-px w-8 bg-brand-primary/20"></div>
                     </div>
 
-                    {/* Bio */}
-                    {/* <div className="space-y-3 mb-8">
-                        <p className="text-gray-500 text-sm leading-relaxed italic">"{artist.bioEn}"</p>
-                        <p className="text-gray-400 text-xs leading-relaxed">({artist.bioTh})</p>
-                    </div> */}
+                    <h2 className="text-3xl md:text-5xl font-black text-content-text-main mb-3 leading-tight tracking-tight">
+                        {data.name} <span className="text-brand-primary">{data.lastName}</span>
+                    </h2>
+                    <p className="text-brand-accent font-bold mb-8 uppercase tracking-[0.2em] text-[10px] md:text-xs opacity-80">{data.engName}</p>
 
-                    {/* Social Links */}
-                    <div className="flex gap-3 mt-auto">
-                        {artist.socials.map((social, idx) => (
+                    <div className="grid grid-cols-3 gap-2 md:gap-4 mb-8 max-w-md mx-auto lg:mx-0">
+                        {[
+                            { label: 'Birth', value: data.birth, icon: Calendar },
+                            { label: 'Hashtag', value: data.hashtag, icon: Ruler },
+                            { label: 'Icon', value: data.icon, icon: Weight },
+                        ].map((stat, idx) => (
+                            <div key={idx} className="bg-brand-primary-light/20 p-3 md:p-4 rounded-2xl border border-brand-primary/5 transition-colors">
+                                <stat.icon size={14} className="mx-auto lg:mx-0 mb-1 text-brand-primary opacity-50" />
+                                <p className="text-[8px] text-brand-primary uppercase font-black tracking-tighter mb-0.5">{stat.label}</p>
+                                <p className="font-extrabold text-content-text-main text-[11px] md:text-sm">{stat.value}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className={`flex flex-wrap gap-3 justify-center ${isReversed ? 'lg:justify-end' : 'lg:justify-start'}`}>
+                        {data.socials.map((social, idx) => (
                             <a
                                 key={idx}
                                 href={social.url}
-                                target="_blank" rel="noopener noreferrer"
-                                className={`${social.color} w-10 h-10 rounded-2xl flex items-center justify-center text-white hover:scale-110 hover:-rotate-6 transition-all shadow-md`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-10 h-10 md:w-12 md:h-12 bg-card-bg border border-brand-primary-light rounded-xl md:rounded-2xl flex items-center justify-center text-brand-primary shadow-sm hover:bg-brand-primary hover:text-white hover:-translate-y-1 transition-all duration-300"
                             >
-                                {social.icon}
+                                <SocialIcon platform={social.platform} />
                             </a>
                         ))}
                     </div>
@@ -142,110 +125,100 @@ const ArtistCard = ({ artist }: { artist: Artist }) => {
     );
 };
 
-export default function Profile() {
+const Profile = () => {
     return (
-        <div className="min-h-screen bg-page-bg text-slate-800 font-sans selection:bg-[#E0F7FF] overflow-x-hidden">
-            <main className="relative max-w-5xl mx-auto px-6 py-16">
+        <div className="min-h-screen bg-page-bg text-content-text-main font-sans pb-20 transition-colors">
 
-                {/* Header Section */}
-                {/* <header className="text-center mb-24">
-                    <div className="mt-4 inline-block">
-                        <div className="flex items-center gap-2 px-4 py-1.5 bg-white rounded-full shadow-sm border border-[#94DDFF]/20 text-[#6BCBFF] font-bold text-xs uppercase tracking-tighter mb-4">
-                            <Sparkles size={14} />
-                            Welcome to our tiny world
+            {/* --- NEW REFINED HEADER --- */}
+            <header className="relative h-[40vh] md:h-[50vh] flex items-center justify-center pt-10 px-6 overflow-hidden">
+                <div className="relative z-10 w-full max-w-4xl">
+                    <div className="bg-card-bg/30 backdrop-blur-xl rounded-[3rem] md:rounded-[5rem] p-8 md:p-12 border border-white/20 shadow-2xl shadow-brand-primary/5 text-center flex flex-col items-center">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="h-px w-8 bg-brand-primary"></div>
+                            <Sparkles className="text-brand-primary" size={20} />
+                            <div className="h-px w-8 bg-brand-primary"></div>
                         </div>
+                        <h1 className="text-2xl md:text-4xl font-black tracking-[0.3em] uppercase text-brand-primary">
+                            The Perfect Match
+                        </h1>
                     </div>
-
-                    <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-6 drop-shadow-sm">
-                        <span className="text-[#94DDFF]">Soft</span> & <span className="text-[#C6BBFF]">Creative</span>
-                    </h1>
-
-                    <p className="text-gray-500 max-w-lg mx-auto text-sm md:text-base font-medium leading-relaxed">
-                        A collaboration between two dreamers and a star mascot. <br />
-                        <span className="text-gray-400 font-normal">การร่วมมือกันของสองนักฝันและมาสคอตดาวดวงน้อย</span>
-                    </p>
-                </header> */}
-
-                {/* Artists Section */}
-                <div className="grid md:grid-cols-2 gap-12 mb-28">
-                    {artists.map(artist => (
-                        <ArtistCard key={artist.id} artist={artist} />
-                    ))}
                 </div>
+            </header>
 
-                {/* Mascot Details Section (Updated to 4:3) */}
-                <section className="bg-card-bg border-4 border-dashed border-[#94DDFF]/20 rounded-[3.5rem] p-10 md:p-16 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 text-[#94DDFF]/10">
-                        <Star size={120} fill="currentColor" />
-                    </div>
+            <main className="max-w-6xl mx-auto px-6 md:px-10">
+                {/* --- MASCOT SECTION (Reduced Overlap) --- */}
+                <section className="relative bg-card-bg rounded-[3rem] md:rounded-[4rem] shadow-2xl overflow-hidden mb-20 -mt-12 md:-mt-16 border border-card-border z-20">
+                    <div className="absolute top-0 right-0 w-80 h-80 bg-brand-primary/5 rounded-full -mr-20 -mt-20 blur-3xl"></div>
 
-                    <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
-                        <div className="space-y-6">
-                            <div className="inline-block px-4 py-1 bg-[#94DDFF] text-white rounded-lg font-black text-sm rotate-[-2deg]">
-                                MEET THE MASCOT
+                    <div className="relative z-10 flex flex-col lg:flex-row items-center gap-10 p-8 md:p-14">
+                        <div className="w-full lg:w-1/2 flex justify-center">
+                            <div className="relative group">
+                                <div className="absolute bg-brand-primary-light rounded-[3rem] rotate-3 scale-105 opacity-50 blur-xl"></div>
+                                <div className="relative bg-white/90 dark:bg-zinc-800 p-6 md:p-8 rounded-[3rem] border border-brand-primary-light/50">
+                                    <img
+                                        src="https://pbs.twimg.com/media/HG4wkJ8akAAdH5i?format=jpg&name=medium"
+                                        alt="Nong Nooong"
+                                        className="w-52 h-52 md:w-72 md:h-72 object-contain drop-shadow-2xl transition-transform duration-500 hover:scale-105"
+                                    />
+                                </div>
+                                <div className="absolute -bottom-2 -right-2 bg-white/90 dark:bg-zinc-900 backdrop-blur-md text-brand-primary px-5 py-2.5 rounded-2xl shadow-lg border border-brand-primary/10 font-black text-[10px] md:text-xs flex items-center gap-2">
+                                    <Sparkles size={14} className="text-brand-accent animate-pulse" />
+                                    <span className="tracking-widest">BokBear</span>
+                                </div>
                             </div>
-                            <h2 className="text-4xl font-black text-content-text-main">
-                                BokBear <br />
-                                <span className="text-[#6BCBFF]">(น้องบ้อกแบร์)</span>
+                        </div>
+
+                        <div className="w-full lg:w-1/2 text-center lg:text-left">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-primary-light text-brand-primary text-[10px] font-black tracking-widest uppercase mb-6 border border-brand-primary/10">
+                                <Star size={12} className="fill-brand-primary" /> MY IDEAL FAN
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-black text-content-text-main mb-6 leading-tight tracking-tight">
+                                บ้อกแบร์ <br />
+                                <span className="text-brand-primary text-2xl font-medium tracking-normal">(BokBear)</span>
                             </h2>
-                            <p className="text-content-text-sub leading-relaxed">
+                            <p className="text-sm md:text-lg text-content-text-sub leading-relaxed font-medium italic border-l-4 border-brand-primary/20 lg:pl-6 mb-8">
                                 หมาบ้อกแบ้กแสนซน 'ตี๋ตี๋'🐶✨ และ เจ้าชายหมีขาวผู้สง่า 'ป๋อ'🐻‍❄️👑 ส่วนผสมที่ถือกำเนิด ณ ปราสาทน้ำแข็งแห่งนี้ 'บ้อกแบร์' ลูกหมีบ้อกแบร์พร้อมจู่โจมหัวใจหม่ามี๊แล้ว หม่าาามี๋ ~ 💖
                             </p>
-                            <div className="flex flex-wrap gap-4">
-                                <div className="bg-white px-5 py-2 rounded-2xl shadow-sm border border-[#94DDFF]/20 flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-[#94DDFF]"></span>
-                                    <span className="text-xs font-bold text-gray-500">พิ่ปิ๊ป</span>
-                                </div>
-                                <div className="bg-white px-5 py-2 rounded-2xl shadow-sm border border-[#C6BBFF]/20 flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-[#C6BBFF]"></span>
-                                    <span className="text-xs font-bold text-gray-500">พิ่จี๋จี๋</span>
-                                </div>
-                            </div>
 
-                            {/* Mascot Social Media */}
-                            <div className="pt-6">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Follow BokBear</p>
-                                <div className="flex gap-3">
-                                    {/* <a href="#" target="_blank" rel="noopener noreferrer" className="bg-[#94DDFF] w-10 h-10 rounded-xl flex items-center justify-center text-white hover:scale-110 transition-transform shadow-sm">
-                                        <Twitter size={18} />
+                            <div className="flex flex-wrap justify-center lg:justify-start gap-3">
+                                {[
+                                    { icon: faInstagram, label: 'Website', url: 'https://specialofttp.vercel.app/' },
+                                    // { icon: faXTwitter, label: 'Twitter', url: 'https://x.com/NONG_NOOONG' },
+                                    // { icon: faTiktok, label: 'Tiktok', url: 'https://www.tiktok.com/@nongnooong.gmmtv' },
+                                ].map((sc, i) => (
+                                    <a key={i} href={sc.url} target="_blank" rel="noreferrer"
+                                        className="flex items-center gap-2 px-4 py-2 bg-brand-primary-light/50 hover:bg-brand-primary hover:text-white rounded-xl text-brand-primary transition-all font-black text-[10px] uppercase tracking-widest border border-brand-primary/10 shadow-sm">
+                                        <FontAwesomeIcon icon={sc.icon} /> {sc.label}
                                     </a>
-                                    <a href="#" target="_blank" rel="noopener noreferrer" className="bg-[#C6BBFF] w-10 h-10 rounded-xl flex items-center justify-center text-white hover:scale-110 transition-transform shadow-sm">
-                                        <Instagram size={18} />
-                                    </a> */}
-                                    <a href="https://specialofttp.vercel.app/" target="_blank" rel="noopener noreferrer" className="bg-[#FFB7B7] w-10 h-10 rounded-xl flex items-center justify-center text-white hover:scale-110 transition-transform shadow-sm">
-                                        <Globe size={18} />
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Mascot Image Box with 4:3 Aspect Ratio */}
-                        <div className="bg-color-card-bg backdrop-blur-sm rounded-[2.5rem] p-4 border-2 border-white shadow-xl rotate-1">
-                            <div className="aspect-[3/4] bg-[#94DDFF]/5 rounded-2xl flex items-center justify-center border-2 border-dashed border-[#94DDFF]/20 overflow-hidden">
-                                {mascotImageUrl ? (
-                                    <img src={mascotImageUrl} alt="Mascot Gallery" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="text-center">
-                                        <p className="text-[#6BCBFF] font-black text-xl mb-1">Mascot Gallery</p>
-                                        <p className="text-[#94DDFF] text-xs">[ พื้นที่แปะรูปมาสคอตเพิ่ม ]</p>
-                                    </div>
-                                )}
+                                ))}
                             </div>
                         </div>
                     </div>
                 </section>
 
-                {/* Footer */}
-                {/* <footer className="mt-28 text-center border-t border-gray-50 pt-10">
-                    <div className="flex justify-center gap-6 mb-4 text-gray-300">
-                        <Palette size={20} className="hover:text-[#94DDFF] cursor-pointer transition-colors" />
-                        <Music size={20} className="hover:text-[#C6BBFF] cursor-pointer transition-colors" />
+                {/* --- ARTISTS SECTION --- */}
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4 mb-10 px-2">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-brand-primary flex items-center justify-center text-white shadow-lg shadow-brand-primary/20">
+                            <User size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl md:text-2xl font-black text-content-text-main uppercase tracking-tight">Main Artists</h3>
+                            <div className="h-1 w-12 bg-brand-primary/20 rounded-full mt-1"></div>
+                        </div>
                     </div>
-                    <p className="text-xs font-bold text-gray-200 uppercase tracking-[0.2em]">
-                        © 2024 Artist Duo Studio • Made with Pastel Dreams
-                    </p>
-                </footer> */}
+
+                    {profiles.map((profile, index) => (
+                        <ProfileCard
+                            key={profile.id}
+                            data={profile}
+                            isReversed={index % 2 !== 0}
+                        />
+                    ))}
+                </div>
             </main>
         </div>
     );
-}
+};
+
+export default Profile;

@@ -45,56 +45,60 @@ const Discography = () => {
                             const artistTheme = getArtistTheme(artistName);
 
                             return (
-                                <div key={item.id} className="group relative bg-card-bg rounded-3xl border border-card-border overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand-primary/10 hover:-translate-y-1 transition-all duration-500 flex flex-col">
+                                <div key={item.id} className="group relative flex flex-col overflow-hidden rounded-3xl border border-card-border bg-card-bg shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-primary/10">
 
                                     {/* Album Cover Section */}
-                                    <div className="aspect-square overflow-hidden relative">
+                                    <div className="relative aspect-square overflow-hidden">
                                         <img
                                             src={item.img || ""}
                                             alt={item.title}
-                                            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                            className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
                                         />
 
-                                        {/* Overlay ไล่เฉดสีดำจากล่างขึ้นบนเพื่อให้ Artist Name และ Title ดูเด่นขึ้น */}
-                                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                        {/* Overlay ไล่เฉดสีดำเมื่อ Hover */}
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-                                        {/* Artist Tag - ปรับให้ดูเป็น Glassmorphism */}
-                                        <div className={`absolute top-3 left-3 ${artistTheme.bg} ${artistTheme.text} px-2.5 py-1 rounded-full border ${artistTheme.border} text-[10px] font-black uppercase tracking-widest backdrop-blur-md bg-opacity-80 shadow-lg`}>
+                                        {/* Artist Tag (Glassmorphism) */}
+                                        <div className={`absolute top-3 left-3 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md bg-opacity-80 rounded-full border ${artistTheme.bg} ${artistTheme.text} ${artistTheme.border}`}>
                                             {artistName}
                                         </div>
                                     </div>
 
                                     {/* Song Info Content */}
-                                    <div className="p-5 flex flex-col flex-1">
-                                        <div className="flex-1 space-y-1.5">
-                                            <h3 className="text-[15px] font-black text-content-text-main line-clamp-2 group-hover:text-brand-primary transition-colors leading-tight min-h-[40px]">
+                                    <div className="flex flex-1 flex-col p-5">
+                                        <div className="flex-1 space-y-2">
+                                            <h3 className="text-[15px] font-black leading-tight text-content-text-main transition-colors group-hover:text-brand-primary">
                                                 {item.title}
                                             </h3>
 
-                                            <div className="flex items-center gap-1.5 text-[11px] text-content-text-muted font-medium">
+                                            {item.note && (
+                                                <p className="text-xs text-content-text-sub">
+                                                    {item.note}
+                                                </p>
+                                            )}
+
+                                            <div className="flex items-center gap-1.5 text-[11px] font-medium text-content-text-muted">
                                                 <Calendar size={12} className="opacity-70" />
-                                                {new Date(item.date).getFullYear()}
+                                                {item.date}
                                             </div>
                                         </div>
 
-                                        {/* Action Buttons - ปรับให้เป็นแนว Button Group ที่ดูสะอาดตา */}
-                                        <div className="mt-5 pt-4 border-t border-card-border/50 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <a href={item.mv || ""} target="_blank" rel="noreferrer"
-                                                    className="group/link flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-content-text-sub hover:text-brand-primary transition-colors">
-                                                    <span className="relative">
+                                        {/* Action Buttons */}
+                                        <div className="mt-5 flex items-center justify-between border-t border-card-border/50 pt-4">
+                                            <div className="flex items-center gap-5">
+                                                {/* MV Link */}
+                                                {item.mv && (
+                                                    <a href={item.mv} target="_blank" rel="noreferrer" className="group/link relative text-[10px] font-black uppercase tracking-widest text-content-text-sub transition-colors hover:text-brand-primary">
                                                         MV
-                                                        <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-primary transition-all group-hover/link:w-full" />
-                                                    </span>
-                                                </a>
+                                                        <span className="absolute -bottom-1 left-0 h-[2px] w-0 bg-brand-primary transition-all group-hover/link:w-full" />
+                                                    </a>
+                                                )}
 
+                                                {/* Streaming Link */}
                                                 {item.streaming && (
-                                                    <a href={item.streaming || ""} target="_blank" rel="noreferrer"
-                                                        className="group/link flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-content-text-sub hover:text-brand-primary transition-colors">
-                                                        <span className="relative">
-                                                            Streaming
-                                                            <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-primary transition-all group-hover/link:w-full" />
-                                                        </span>
+                                                    <a href={item.streaming} target="_blank" rel="noreferrer" className="group/link relative text-[10px] font-black uppercase tracking-widest text-content-text-sub transition-colors hover:text-brand-primary">
+                                                        Streaming
+                                                        <span className="absolute -bottom-1 left-0 h-[2px] w-0 bg-brand-primary transition-all group-hover/link:w-full" />
                                                     </a>
                                                 )}                                                
                                             </div>

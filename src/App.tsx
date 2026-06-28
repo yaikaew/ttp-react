@@ -1,85 +1,43 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAdminAuth } from "./hooks/useAdminAuth"
-import { PageLoader } from "./components/PageLoader";
-import { FilmDetail } from './pages/FilmDetail';
-import Profile from './pages/Profile';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import Filmography from './pages/Filmography';
-import LoginPage from './admin/pages/LoginPage';
-import AdminDashboard from './admin/pages/AdminDashboard';
-import ManagementPage from './admin/pages/ManagementPage';
 import ScrollToTop from './components/ScrollToTop';
-import { AdminFloatingButton } from './components/AdminFloatingButton';
-import CalendarPage from './pages/Calendar';
-import CalendarTable from './pages/CalendarTable';
-// import Magazine from './pages/Magazine';
-import Content from './pages/Content';
-import Performance from './pages/Performance';
-import Discography from './pages/Discography';
-import HomePage from './pages/HomePage';
-// import BrandEndorsementPage from './pages/BrandEndorsementPage';
-// import AwardsPage from './pages/AwardsPage';
+import HomePage from './pages/Home';
+import Profile from './pages/Profile';
+import Calendar from './pages/Calendar';
 import OutfitsPage from './pages/OutfitsPage';
-import CalendarAll from './pages/CalendarAll';
+import Filmography from './pages/Filmography';
+import { FilmDetail } from './pages/FilmDetail';
+import Discography from './pages/Discography';
+import PerformancePage from './pages/Performance';
+import ContentPage from './pages/Content';
+import LoginPage from './pages/Login';
+import { AuthProvider } from './hooks/useAuth';
 
-const ProtectedAdmin = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAdminAuth();
-  if (loading) return <PageLoader />;
-  if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-};
-
-function App() {
-  const location = useLocation();
-  const isLoginPage = location.pathname === '/login';
-  const isAdminPath = location.pathname.startsWith('/admin');
-
+export default function App() {
   return (
-    <div className="flex min-h-screen">
-      {!isLoginPage && !isAdminPath && <Sidebar />}
+    <AuthProvider>
+      <div className="flex min-h-screen">
+        <Sidebar />
 
-      <main className={`flex-1 min-h-screen ${!isLoginPage && !isAdminPath
-        ? "bg-brand-bg lg:ml-64 pt-16 lg:pt-0"
-        : "bg-slate-50"
-        }`}>
-        <ScrollToTop />
-        <AdminFloatingButton />
+        <main className="flex-1 min-h-screen bg-brand-bg lg:ml-64 pt-16 lg:pt-0">
+          <ScrollToTop />
 
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/outfits" element={<OutfitsPage />} />
+            <Route path="/filmography" element={<Filmography />} />
+            <Route path="/filmography/:id" element={<FilmDetail />} />
+            <Route path="/discography" element={<Discography />} />
+            <Route path="/performance" element={<PerformancePage />} />
+            <Route path="/content" element={<ContentPage />} />
+            <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/calendar-table" element={<CalendarTable />} />
-          <Route path="/calendar-all" element={<CalendarAll />} />
-          <Route path="/outfits" element={<OutfitsPage />} />
-          <Route path="/discography" element={<Discography />} />
-          <Route path="/performance" element={<Performance />} />
-          <Route path="/filmography" element={<Filmography />} />
-          <Route path="/filmography/:id" element={<FilmDetail />} />
-          {/* <Route path="/magazine" element={<Magazine />} /> */}
-          <Route path="/content" element={<Content />} />
-          {/* <Route path="/endorsements" element={<BrandEndorsementPage />} /> */}
-          {/* <Route path="/awards" element={<AwardsPage />} /> */}
-
-          {/* Admin Routes */}
-          <Route path="/admin" element={
-            <ProtectedAdmin>
-              <AdminDashboard />
-            </ProtectedAdmin>
-          } />
-          <Route path="/admin/:tableName" element={
-            <ProtectedAdmin>
-              <ManagementPage />
-            </ProtectedAdmin>
-          } />
-
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-    </div>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </AuthProvider>
   );
 }
-
-export default App;

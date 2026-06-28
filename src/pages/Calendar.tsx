@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useCalendar } from '../hooks/useCalendar';
+import { useAuth } from '../hooks/useAuth';
 import FilterHeader from '../components/FilterHeader'
 import { LoadingState } from '../components/LoadingState'
 import { NoResults } from '../components/NoResults';
@@ -25,6 +26,7 @@ const Calendar = () => {
     };
 
     const { schedule, loading, refreshSchedule } = useCalendar();
+    const { session } = useAuth();
 
     const handleReset = () => {
         setFilterArtist(['All']); setSearchTerm(''); setStartDate(''); setEndDate(''); setSortOrder('asc');
@@ -47,8 +49,13 @@ const Calendar = () => {
             const isDateFiltered = startDate !== '' || endDate !== '';
             const matchUpcoming = isDateFiltered ? true : itemTime >= nowTime;
 
-            const start = startDate ? new Date(startDate).getTime() : -Infinity;
-            const end = endDate ? new Date(endDate + 'T23:59:59').getTime() : Infinity;
+            const parseLocalDate = (dateString: string) => {
+                const [year, month, day] = dateString.split('-').map(Number);
+                return new Date(year, month - 1, day).getTime();
+            };
+
+            const start = startDate ? parseLocalDate(startDate) : -Infinity;
+            const end = endDate ? new Date(parseLocalDate(endDate) + 24 * 60 * 60 * 1000 - 1).getTime() : Infinity;
 
             const artistName = Array.isArray(item.artist) ? item.artist[0]?.name : item.artist?.name;
             const matchArtist = filterArtist.includes('All') || (artistName && filterArtist.includes(artistName));
@@ -110,7 +117,8 @@ const Calendar = () => {
                                     <CalendarCard
                                         key={event.id}
                                         event={event}
-                                        onEventUpdate={refreshSchedule}
+                                        isEditable={Boolean(session)}
+                                        onUpdated={refreshSchedule}
                                     />
                                 ))}
                             </div>

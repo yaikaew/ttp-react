@@ -5,7 +5,6 @@ import FilterHeader from '../components/FilterHeader';
 import { LoadingState } from '../components/LoadingState';
 import { NoResults } from '../components/NoResults';
 import { getArtistTheme, getTypeTheme } from '../utils/theme';
-import { VideoCard } from '../components/VideoCard';
 
 const Performance = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -33,7 +32,7 @@ const Performance = () => {
                 onReset={handleReset}
                 filterGroups={[
                     { label: 'Artist', selectedValues: state.filterArtist, options: ['All', 'Teetee', 'Por', 'TeeteePor', 'DEXX'], onSelect: setters.setFilterArtist },
-                    { label: 'Type', selectedValues: state.filterType, options: ['All', 'Performance', 'Cover', 'Music Video'], onSelect: setters.setFilterType }
+                    { label: 'Type', selectedValues: state.filterType, options: ['All', 'Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Interview', 'Live Event'], onSelect: setters.setFilterType }
                 ]}
             />
 
@@ -47,19 +46,46 @@ const Performance = () => {
                             const typeTheme = getTypeTheme ? getTypeTheme(item.type || '') : undefined;
 
                             return (
-                                <VideoCard
+                                <a
                                     key={item.id}
-                                    link={item.link || "#"}
-                                    img={item.img || ""}
-                                    title={item.title || ""}
-                                    date={item.date ? String(item.date) : ""}
-                                    artistName={artistName}
-                                    type={item.type || "performance"}
-                                    variant="performance"
-                                    artistTheme={artistTheme}
-                                    typeTheme={typeTheme}
-                                    note={item.note || ""}
-                                />
+                                    href={item.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group bg-card-bg rounded-3xl border border-card-border overflow-hidden shadow-sm hover:shadow-xl hover:shadow-brand-primary-light/50 transition-all duration-500 flex flex-col"
+                                >
+                                    <div className="aspect-video bg-slate-100 overflow-hidden">
+                                        <img
+                                            src={item.img}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition"
+                                        />
+                                    </div>
+
+                                    {/* Content Section */}
+                                    <div className="p-4 flex flex-col grow space-y-2">
+                                        <div className="flex flex-wrap gap-2 text-[10px]">
+                                            <span className={`uppercase px-2 py-0.5 rounded-lg border ${artistTheme.border} ${artistTheme.bg} ${artistTheme.text}`}>
+                                                {artistName}
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded-lg border ${typeTheme?.border || 'border-slate-100'} ${typeTheme?.bg || 'bg-white/90'} ${typeTheme?.text || 'text-slate-700'}`}>
+                                                {item.type}
+                                            </span>
+                                            <span className="text-content-text-muted ml-auto">
+                                                {item.date}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-sm text-content-text-main line-clamp-2 font-bold">
+                                            {item.title}
+                                        </h3>
+
+                                        {item.note && (
+                                            <p className="text-xs text-content-text-sub line-clamp-1">
+                                                {item.note}
+                                            </p>
+                                        )}
+                                    </div>
+                                </a>
                             );
                         })}
                     </div>

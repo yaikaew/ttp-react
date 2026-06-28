@@ -1,22 +1,9 @@
 import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import {
-    Menu, X, Sparkles, Database, LogOut, Sun, Moon, Heart,
-    Home, 
-    // BookOpen, Tag, Trophy,
-    User,
-    Calendar,
-    Film,
-    Disc3,
-    PlayCircle,
-    Video
+    Menu, X, Sparkles, Heart, Home, Video, PlayCircle, User, Calendar, Disc3, Film
 } from "lucide-react"
-import { useAdminAuth } from "../hooks/useAdminAuth"
-import { supabase } from "../lib/supabaseClient"
-
-/* -------------------------------------------------------------------------- */
-/* Types & Constants                                                           */
-/* -------------------------------------------------------------------------- */
+import { useAuth } from '../hooks/useAuth'
 
 const MENUS = [
     { name: 'Home', path: '/', icon: Home },
@@ -27,34 +14,11 @@ const MENUS = [
     { name: "Discography", path: "/discography", icon: Disc3 },
     { name: "Performance", path: "/performance", icon: PlayCircle },
     { name: "Content", path: "/content", icon: Video },
-    // { name: "Magazine", path: "/magazine", icon: BookOpen },
-    // { name: 'Endorsements', path: '/endorsements', icon: Tag },
-    // { name: 'Awards', path: '/awards', icon: Trophy },
 ]
 
 const Sidebar = () => {
-    const { user } = useAdminAuth()
     const location = useLocation()
     const [isOpen, setIsOpen] = useState(false)
-
-    // Theme Logic
-    const [isDark, setIsDark] = useState<boolean>(() => {
-        if (typeof window === "undefined") return false
-        return localStorage.getItem("theme") === "dark"
-    })
-
-    useEffect(() => {
-        const root = document.documentElement
-        if (isDark) {
-            root.classList.add("dark")
-            localStorage.setItem("theme", "dark")
-        } else {
-            root.classList.remove("dark")
-            localStorage.setItem("theme", "light")
-        }
-    }, [isDark])
-
-    const toggleTheme = () => setIsDark(!isDark)
 
     // Handle Body Scroll & Resize
     useEffect(() => {
@@ -69,29 +33,19 @@ const Sidebar = () => {
         return () => window.removeEventListener("resize", onResize)
     }, [])
 
-    const handleLogout = async () => {
-        try {
-            // Clear local storage first
-            localStorage.clear();
-            sessionStorage.clear();
-
-            // Attempt to sign out from Supabase
-            await supabase.auth.signOut();
-
-            // Even if there's an error, we still want to reload the page
-            // because we've cleared local storage
-            window.location.reload();
-        } catch (error) {
-            // If signOut fails, still clear storage and reload
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.reload();
-        }
-    }
+    const { session, signOut } = useAuth();
 
     // Styles from Template
     const activeClass = 'bg-nav-bg-hover text-brand-primary';
     const inactiveClass = 'text-nav-text hover:bg-nav-bg-hover';
+
+    const handleLogout = async () => {
+        try {
+            await signOut();
+        } catch {
+            // ignore errors here
+        }
+    };
 
     return (
         <>
@@ -143,17 +97,6 @@ const Sidebar = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Theme Toggle */}
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 rounded-xl
-                            bg-card-bg text-content-text-sub
-                            hover:bg-nav-bg-hover transition"
-                            title="Toggle theme"
-                        >
-                            {isDark ? <Sun size={16} /> : <Moon size={16} />}
-                        </button>
                     </div>
 
                     {/* ================= Navigation ================= */}
@@ -187,38 +130,22 @@ const Sidebar = () => {
 
                     {/* ================= Footer ================= */}
                     <div className="pt-6 space-y-3 border-t border-brand-sidebar-border">
-                        {user && (
-                            <div className="px-2">
-                                <Link
-                                    to="/admin"
-                                    onClick={() => setIsOpen(false)}
-                                    className="flex items-center gap-3 p-3 rounded-2xl border
-                                    bg-brand-primary-light border-brand-sidebar-border hover:opacity-90 transition"
-                                >
-                                    <div className="w-8 h-8 rounded-xl flex items-center justify-center
-                                    bg-brand-primary text-white shadow-sm">
-                                        <Database size={16} />
+                        {session ? (
+                            <div className="space-y-3">
+                                <div className="px-4 py-3 rounded-2xl bg-nav-bg-hover text-xs font-semibold text-content-text-main">
+                                    Signed in as
+                                    <div className="font-bold text-sm text-brand-primary truncate">
+                                        {session.user?.email ?? 'User'}
                                     </div>
-                                    <div className="min-w-0">
-                                        <div className="text-[10px] font-bold uppercase tracking-wider text-content-text-header">
-                                            Admin Dashboard
-                                        </div>
-                                        <div className="text-xs font-bold truncate">
-                                            {user.email}
-                                        </div>
-                                    </div>
-                                </Link>
-
+                                </div>
                                 <button
                                     onClick={handleLogout}
-                                    className="w-full mt-2 flex items-center gap-3 px-4 py-3 rounded-2xl
-                                    text-xs font-bold text-red-500 hover:bg-red-500/10 transition-colors"
+                                    className="w-full px-4 py-3 rounded-2xl bg-brand-primary text-white text-sm font-bold hover:bg-brand-primary/90 transition"
                                 >
-                                    <LogOut size={18} />
                                     Logout
                                 </button>
                             </div>
-                        )}
+                        ) : null}
 
                         <a
                             href="https://x.com/yorkorrrr"

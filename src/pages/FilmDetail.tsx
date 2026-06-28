@@ -1,10 +1,10 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useFilmData } from '../hooks/useFilmData';
-import { Film, Play, ArrowLeft, Youtube, Star, BookOpen, TrendingUp, Clapperboard, Tv, PlaySquare, Heart } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { LoadingState } from '../components/LoadingState';
-import type { Tables } from '../types/supabase';
+import { useFilmData } from '../hooks/useFilmData';
+
+import { Film, Play, ArrowLeft, Star, BookOpen, TrendingUp, Clapperboard, Tv, PlaySquare, Heart } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 const parseIds = (input?: string | null) =>
     input ? input.split(',').map((v) => v.trim()).filter(Boolean) : [];
@@ -105,11 +105,11 @@ const VideoGrid = ({
 };
 
 export const FilmDetail = () => {
-    const { id } = useParams<{ id: string }>();
+    const { id } = useParams();
     const navigate = useNavigate();
-    const { film, loading, error } = useFilmData(Number(id));
+    const { film, filmographydetail, filmographytrends, loading, error } = useFilmData(Number(id));
 
-    const trends = film?.filmographytrends;
+    const trends = filmographytrends;
     const sortedTrends = React.useMemo(() => {
         if (!trends) return [];
         return [...trends].sort((a, b) =>
@@ -136,7 +136,7 @@ export const FilmDetail = () => {
         );
     }
 
-    const detail = film.filmographydetail;
+    const detail = filmographydetail;
 
     const btsIds = parseIds(detail?.bts_id);
     const highlightIds = parseIds(detail?.highlight_id);
@@ -225,7 +225,7 @@ export const FilmDetail = () => {
             </div>
 
             <div className="px-6 py-12">
-                <SectionHeader icon={Youtube} title="Official Trailer" subtitle="Watch the official trailer" />
+                <SectionHeader icon={Play} title="Official Trailer" subtitle="Watch the official trailer" />
                 <div className="aspect-video rounded-3xl overflow-hidden bg-black shadow-2xl border-4 border-card-bg">
                     <iframe className="w-full h-full" src={`https://www.youtube.com/embed/${detail?.trailer_id}`} allowFullScreen />
                 </div>
@@ -277,7 +277,7 @@ export const FilmDetail = () => {
                     <div className="space-y-4">
                         {/* Mobile View - Card Layout */}
                         <div className="block md:hidden space-y-4">
-                            {sortedTrends.map((trend: Tables<'filmographytrends'>) => (
+                            {sortedTrends.map((trend) => (
                                 <div key={trend.id}
                                     onClick={() => trend.source_link ? window.open(trend.source_link, '_blank', 'noopener,noreferrer') : null}
                                     className={`bg-card-bg p-5 rounded-3xl border border-card-border shadow-sm active:scale-[0.98] transition-all ${trend.source_link ? 'cursor-pointer' : ''}`}
@@ -339,7 +339,7 @@ export const FilmDetail = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-card-border">
-                                    {sortedTrends.map((trend: Tables<'filmographytrends'>) => (
+                                    {sortedTrends.map((trend) => (
                                         <tr key={trend.id}
                                             onClick={() => trend.source_link ? window.open(trend.source_link, '_blank', 'noopener,noreferrer') : null}
                                             className={`transition-colors ${trend.source_link ? 'cursor-pointer hover:bg-brand-primary/5' : ''}`}

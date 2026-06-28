@@ -23,6 +23,17 @@ export const discographyService = {
   },
 };
 
+export const filmographyService = {
+  async getFilmography() {
+    const { data, error } = await supabase
+      .from("filmography")
+      .select(`*,artist:artist_id ( name )`)
+      .order("date", { ascending: true });
+    if (error) throw error;
+    return data || [];
+  },
+};
+
 export const performanceService = {
   async getPerformance() {
     const { data, error } = await supabase

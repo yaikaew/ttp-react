@@ -61,4 +61,20 @@ export const calendarService = {
 
     if (error) throw error;
   },
+
+  async getEventById(id: number) {
+    const { data, error } = await supabase
+      .from("calendar")
+      .select(
+        `
+        *,
+        artist:artist_id ( name )
+      `,
+      )
+      .eq("id", id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };

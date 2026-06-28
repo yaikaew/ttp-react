@@ -130,11 +130,10 @@ const FilterHeader = ({
                             ))}
                         </div>
 
-                        {/* Footer Actions - เส้นคั่นเข้มขึ้น */}
                         <div className="pt-8 border-t-2 border-brand-primary/20 flex flex-col sm:flex-row justify-between items-center gap-4">
                             <button
                                 onClick={onReset}
-                                className="flex items-center gap-2 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-brand-accent hover:text-brand-primary transition-colors group"
+                                className="flex items-center gap-2 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-brand-primary hover:text-brand-accent transition-colors group"
                             >
                                 <RotateCcw className="w-3.5 h-3.5 group-hover:rotate-[-120deg] transition-transform duration-500" />
                                 Reset Filter
