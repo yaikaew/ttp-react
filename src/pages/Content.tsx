@@ -1,15 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
+import { Plus, X } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { useContent } from '../hooks/useContent';
 import { useFilter } from '../hooks/useFilter';
 import FilterHeader from '../components/FilterHeader';
 import { LoadingState } from '../components/LoadingState';
 import { NoResults } from '../components/NoResults';
+import { contentService } from '../services/AllService';
 import { getArtistTheme, getTypeTheme } from '../utils/theme';
 
 const Content = () => {
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const DEFAULT_CONTENT_IMG_URL = 'https://img.youtube.com/vi//maxresdefault.jpg';
 
-    const { contents, loading } = useContent();
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [artistOptions, setArtistOptions] = useState<Array<{ id: number; name: string }>>([]);
+    const [createLoading, setCreateLoading] = useState(false);
+    const [createError, setCreateError] = useState<string | null>(null);
+    const [newContentArtistId, setNewContentArtistId] = useState<number | null>(null);
+    const [newContentName, setNewContentName] = useState('');
+    const [newContentType, setNewContentType] = useState('');
+    const [newContentDate, setNewContentDate] = useState(new Date().toISOString().slice(0, 10));
+    const [newContentImg, setNewContentImg] = useState(DEFAULT_CONTENT_IMG_URL);
+    const [newContentLink, setNewContentLink] = useState('');
+
+    const { session } = useAuth();
+    const { contents, loading, refreshContent } = useContent();
 
     const {
         state,
@@ -17,6 +33,76 @@ const Content = () => {
         handleReset,
         filteredItems
     } = useFilter(contents || []);
+
+    useEffect(() => {
+        document.body.style.overflow = isCreateModalOpen ? 'hidden' : '';
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isCreateModalOpen]);
+
+    const resetCreateForm = () => {
+        setNewContentArtistId(artistOptions.find((artist) => artist.name === 'TeeteePor')?.id ?? artistOptions[0]?.id ?? null);
+        setNewContentName('');
+        setNewContentType('');
+        setNewContentDate(new Date().toISOString().slice(0, 10));
+        setNewContentImg(DEFAULT_CONTENT_IMG_URL);
+        setNewContentLink('');
+        setCreateError(null);
+    };
+
+    const openCreateModal = async () => {
+        setIsCreateModalOpen(true);
+        setCreateError(null);
+        setCreateLoading(true);
+
+        try {
+            const artists = await contentService.getArtists();
+            const sortedArtists = [...artists].sort((a, b) => a.name.localeCompare(b.name));
+            setArtistOptions(sortedArtists);
+            setNewContentArtistId(sortedArtists.find((artist) => artist.name === 'TeeteePor')?.id ?? sortedArtists[0]?.id ?? null);
+            setNewContentName('');
+            setNewContentType('');
+            setNewContentDate(new Date().toISOString().slice(0, 10));
+            setNewContentImg(DEFAULT_CONTENT_IMG_URL);
+            setNewContentLink('');
+        } catch (err) {
+            setCreateError((err as Error).message);
+        } finally {
+            setCreateLoading(false);
+        }
+    };
+
+    const handleCreateContent = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (!newContentArtistId || !newContentName.trim() || !newContentDate) {
+            setCreateError('กรุณากรอก Artist, ชื่อ Content และวันที่ให้ครบถ้วน');
+            return;
+        }
+
+        setCreateLoading(true);
+        setCreateError(null);
+
+        try {
+            await contentService.createContent({
+                artist_id: newContentArtistId,
+                name: newContentName.trim(),
+                type: newContentType.trim() || null,
+                date: newContentDate,
+                img: newContentImg.trim() || null,
+                link: newContentLink.trim() || null,
+            });
+
+            setIsCreateModalOpen(false);
+            resetCreateForm();
+            await refreshContent();
+        } catch (err) {
+            setCreateError((err as Error).message);
+        } finally {
+            setCreateLoading(false);
+        }
+    };
 
     if (loading) return <LoadingState />;
 
@@ -35,6 +121,16 @@ const Content = () => {
                     { label: 'Type', selectedValues: state.filterType, options: ['All', 'Online Shows', 'Special', 'BTS', 'Press Tour', 'Press Cons', 'Reaction', 'Live', 'Interview', 'Live Event'], onSelect: setters.setFilterType }
                 ]}
             />
+
+            {session && (
+                <button
+                    type="button"
+                    onClick={openCreateModal}
+                    className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full bg-brand-primary px-5 py-4 text-sm font-semibold text-white shadow-2xl shadow-brand-primary/40 transition hover:bg-brand-primary/90"
+                >
+                    <Plus className="h-4 w-4" />
+                </button>
+            )}
 
             <div className="px-4">
                 {filteredItems.length > 0 ? (
@@ -87,6 +183,143 @@ const Content = () => {
                     <NoResults onReset={handleReset} />
                 )}
             </div>
+
+            {isCreateModalOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+                    <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl">
+                        <div className="flex items-start justify-between gap-4 border-b border-brand-sidebar-border/50 pb-4">
+                            <div>
+                                <h3 className="text-xl font-black text-content-text-main">เพิ่มเนื้อหาใหม่</h3>
+                                <p className="text-sm text-content-text-sub">เพิ่มข้อมูล Contents ใหม่ไปยังฐานข้อมูล</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setIsCreateModalOpen(false);
+                                    setCreateError(null);
+                                }}
+                                className="rounded-full p-2 text-content-text-sub transition hover:bg-brand-primary/10 hover:text-brand-primary"
+                                title="Close"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateContent} className="mt-6 space-y-4">
+                            {createError && (
+                                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                    {createError}
+                                </div>
+                            )}
+
+                            <div className="grid gap-4 sm:grid-cols-2">
+                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
+                                    <span>Artist</span>
+                                    <select
+                                        value={newContentArtistId ?? ''}
+                                        onChange={(event) => setNewContentArtistId(Number(event.target.value) || null)}
+                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                                        disabled={createLoading}
+                                    >
+                                        <option value="">Artist</option>
+                                        {artistOptions.map((artist) => (
+                                            <option key={artist.id} value={artist.id}>{artist.name}</option>
+                                        ))}
+                                    </select>
+                                </label>
+
+                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
+                                    <span>Name</span>
+                                    <input
+                                        type="text"
+                                        value={newContentName}
+                                        onChange={(event) => setNewContentName(event.target.value)}
+                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                                        disabled={createLoading}
+                                        required
+                                    />
+                                </label>
+
+                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
+                                    <span>Type</span>
+                                    <select
+                                        value={newContentType}
+                                        onChange={(event) => setNewContentType(event.target.value)}
+                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                                        disabled={createLoading}
+                                    >
+                                        <option value="">เลือกประเภท</option>
+                                        <option value="Online Shows">Online Shows</option>
+                                        <option value="Special">Special</option>
+                                        <option value="BTS">BTS</option>
+                                        <option value="Press Tour">Press Tour</option>
+                                        <option value="Press Cons">Press Cons</option>
+                                        <option value="Reaction">Reaction</option>
+                                        <option value="Live">Live</option>
+                                        <option value="Interview">Interview</option>
+                                        <option value="Live Event">Live Event</option>
+                                    </select>
+                                </label>
+
+                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
+                                    <span>Date</span>
+                                    <input
+                                        type="date"
+                                        value={newContentDate}
+                                        onChange={(event) => setNewContentDate(event.target.value)}
+                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                                        disabled={createLoading}
+                                        required
+                                    />
+                                </label>
+
+                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main sm:col-span-2">
+                                    <span>IMG URL</span>
+                                    <input
+                                        type="text"
+                                        value={newContentImg}
+                                        placeholder="https://img.youtube.com/vi//maxresdefault.jpg"
+                                        onChange={(event) => setNewContentImg(event.target.value)}
+                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                                        disabled={createLoading}
+                                    />
+                                </label>
+
+                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main sm:col-span-2">
+                                    <span>Link</span>
+                                    <input
+                                        type="text"
+                                        value={newContentLink}
+                                        onChange={(event) => setNewContentLink(event.target.value)}
+                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                                        disabled={createLoading}
+                                    />
+                                </label>
+                            </div>
+
+                            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsCreateModalOpen(false);
+                                        setCreateError(null);
+                                    }}
+                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                                    disabled={createLoading}
+                                >
+                                    ยกเลิก
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="rounded-2xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                                    disabled={createLoading}
+                                >
+                                    {createLoading ? 'กำลังบันทึก...' : 'บันทึกเนื้อหา'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

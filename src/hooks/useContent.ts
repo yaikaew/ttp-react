@@ -7,12 +7,19 @@ export const useContent = () => {
   const [contents, setContent] = useState<AllData>([]);
   const [loading, setLoading] = useState(true);
 
+  const refreshContent = async () => {
+    setLoading(true);
+    try {
+      const data = await contentService.getContent();
+      setContent(data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    contentService
-      .getContent()
-      .then((data) => setContent(data))
-      .finally(() => setLoading(false));
+    refreshContent();
   }, []);
 
-  return { contents, loading };
+  return { contents, loading, refreshContent };
 };

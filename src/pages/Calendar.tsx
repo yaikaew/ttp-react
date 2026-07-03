@@ -67,7 +67,7 @@ const Calendar = () => {
     }
 
     const resetCreateForm = () => {
-        setNewEventArtistId(null);
+        setNewEventArtistId(artistOptions.find((artist) => artist.name === 'TeeteePor')?.id ?? artistOptions[0]?.id ?? null);
         setNewEventName('');
         setNewEventDatetime(formatToDatetimeLocal(new Date().toISOString()));
         setNewEventLocation('');
@@ -90,7 +90,7 @@ const Calendar = () => {
             const artists = await calendarService.getArtists();
             const sortedArtists = [...artists].sort((a, b) => a.name.localeCompare(b.name));
             setArtistOptions(sortedArtists);
-            setNewEventArtistId(sortedArtists[0]?.id ?? null);
+            setNewEventArtistId(sortedArtists.find((artist) => artist.name === 'TeeteePor')?.id ?? sortedArtists[0]?.id ?? null);
             setNewEventDatetime(formatToDatetimeLocal(new Date().toISOString()));
         } catch (err) {
             setCreateError((err as Error).message);
@@ -205,15 +205,13 @@ const Calendar = () => {
             />
 
             {Boolean(session) && (
-                <div className="px-4 flex justify-end mb-6">
-                    <button
-                        onClick={handleOpenCreateModal}
-                        className="inline-flex items-center gap-2 rounded-2xl bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-primary/20 transition hover:bg-brand-primary/90"
-                    >
-                        <Plus className="h-4 w-4" />
-                        เพิ่มข้อมูลจากเว็บ
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    onClick={handleOpenCreateModal}
+                    className="fixed bottom-6 right-6 z-50 inline-flex items-center gap-2 rounded-full bg-brand-primary px-5 py-4 text-sm font-semibold text-white shadow-2xl shadow-brand-primary/40 transition hover:bg-brand-primary/90"
+                >
+                    <Plus className="h-4 w-4" />
+                </button>
             )}
 
             {isCreateModalOpen && (

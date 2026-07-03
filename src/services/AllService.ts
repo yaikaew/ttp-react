@@ -10,6 +10,33 @@ export const contentService = {
     if (error) throw error;
     return data || [];
   },
+
+  async getArtists() {
+    const { data, error } = await supabase
+      .from("artist")
+      .select("id, name")
+      .order("name", { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createContent(insert: {
+    artist_id: number;
+    name: string;
+    type?: string | null;
+    date: string;
+    img?: string | null;
+    link?: string | null;
+  }) {
+    const { data, error } = await supabase
+      .from("contents")
+      .insert(insert)
+      .select(`*,artist:artist_id ( name )`);
+
+    if (error) throw error;
+    return data?.[0] ?? null;
+  },
 };
 
 export const discographyService = {
