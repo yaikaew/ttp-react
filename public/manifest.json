@@ -1,0 +1,46 @@
+{
+  "name": "TeeteePor",
+  "short_name": "TTP",
+  "description": "TeeteePor",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FFFFFF",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/src/assets/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/src/assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/src/assets/icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["entertainment", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "/src/assets/icon.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/src/assets/icon.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}

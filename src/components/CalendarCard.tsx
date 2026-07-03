@@ -211,7 +211,7 @@ const CalendarCard = ({ event, isEditable = false, onUpdated }: CalendarCardProp
 
         const startDate = new Date(event.datetimetz);
         // Set duration to be the same as start time
-        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        const endDate = new Date(startDate.getTime());
 
         const formatToGoogleCalendarDate = (date: Date) => {
             return date.toISOString().replace(/-|:|\.\d\d\d/g, '');
