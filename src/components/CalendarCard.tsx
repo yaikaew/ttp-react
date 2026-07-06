@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Megaphone, CalendarPlus, Edit } from 'lucide-react';
+import { MapPin, Clock, Hash, KeyRoundIcon, PlayCircle, Video, ChevronDown, Megaphone, CalendarPlus, Edit, X, InfoIcon } from 'lucide-react';
 import { getArtistTheme, getDOWTheme } from '../utils/theme';
 import { calendarService } from '../services/calendarService';
 
@@ -120,7 +120,7 @@ const CalendarCard = ({ event, isEditable = false, onUpdated }: CalendarCardProp
 
     const isToday = eventBangkok === todayBangkok;
 
-    const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link;
+    const hasMoreInfo = event.keyword || event.hashtag || event.rerun_link || event.info_link;
 
     const handleOpenEditModal = async () => {
         setIsModalOpen(true);
@@ -367,7 +367,7 @@ const CalendarCard = ({ event, isEditable = false, onUpdated }: CalendarCardProp
                                     </a>
                                 )}
 
-                                {/* {event.info_link && (
+                                {event.info_link && (
                                     <a
                                         href={event.info_link}
                                         target="_blank"
@@ -378,25 +378,25 @@ const CalendarCard = ({ event, isEditable = false, onUpdated }: CalendarCardProp
                                         <InfoIcon className="w-4 h-4" />
                                         <span>รายละเอียดเพิ่มเติม</span>
                                     </a>
-                                )} */}
+                                )}
                             </div>
                         </div>
                     )}
 
                     {isModalOpen && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                            <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/10">
-                                <div className="flex items-center justify-between border-b border-brand-sidebar-border/50 px-6 py-4">
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+                            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl">
+                                <div className="flex items-start justify-between gap-4 border-b border-brand-sidebar-border/50 pb-4">
                                     <div>
                                         <div className="text-lg font-bold">Edit Event</div>
                                         <div className="text-xs text-content-text-sub">{event.name}</div>
                                     </div>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
-                                        className="text-xl font-black text-content-text-sub hover:text-content-text-main"
+                                        className="rounded-full p-2 text-content-text-sub transition hover:bg-brand-primary/10 hover:text-brand-primary"
                                         title="Close"
                                     >
-                                        ×
+                                        <X className="h-5 w-5" />
                                     </button>
                                 </div>
 

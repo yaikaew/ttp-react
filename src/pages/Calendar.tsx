@@ -38,6 +38,8 @@ const Calendar = () => {
     const [newEventHashtag, setNewEventHashtag] = useState('')
     const [newEventInfoLink, setNewEventInfoLink] = useState('')
     const [newEventRerunLink, setNewEventRerunLink] = useState('')
+    const [newEventOutfit, setNewOutfit] = useState('')
+    const [newEventOutfitImg, setNewOutfitImg] = useState('')
     const [newEventNote, setNewEventNote] = useState('')
     const [newEventDMD, setNewEventDMD] = useState('')
 
@@ -77,6 +79,8 @@ const Calendar = () => {
         setNewEventHashtag('');
         setNewEventInfoLink('');
         setNewEventRerunLink('');
+        setNewOutfit('');
+        setNewOutfitImg('');
         setNewEventNote('');
         setNewEventDMD('');
     };
@@ -122,6 +126,8 @@ const Calendar = () => {
                 hashtag: newEventHashtag || null,
                 info_link: newEventInfoLink || null,
                 rerun_link: newEventRerunLink || null,
+                outfit: newEventOutfit || null,
+                outfit_img: newEventOutfitImg || null,
                 note: newEventNote || null,
                 dmd: newEventDMD || null,
             });
@@ -219,8 +225,8 @@ const Calendar = () => {
                     <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl">
                         <div className="flex items-start justify-between gap-4 border-b border-brand-sidebar-border/50 pb-4">
                             <div>
-                                <h3 className="text-xl font-black text-content-text-main">เพิ่มข้อมูลใน Calendar</h3>
-                                <p className="text-sm text-content-text-sub">สร้างรายการใหม่สำหรับหน้า Calendar ได้ทันที</p>
+                                <h3 className="text-lg font-bold">เพิ่มข้อมูลใน Calendar</h3>
+                                <p className="text-xs text-content-text-sub">สร้างรายการใหม่สำหรับหน้า Calendar ได้ทันที</p>
                             </div>
                             <button
                                 onClick={() => {
@@ -234,185 +240,212 @@ const Calendar = () => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateEvent} className="mt-6 space-y-4">
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Artist</span>
-                                    <select
-                                        value={newEventArtistId ?? ''}
-                                        onChange={(event) => setNewEventArtistId(Number(event.target.value) || null)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                        <div className="max-h-[70vh] overflow-y-auto p-6">
+                            <form onSubmit={handleCreateEvent} className="space-y-5">
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Artist</label>
+                                        <select
+                                            value={newEventArtistId ?? ''}
+                                            onChange={(e) => setNewEventArtistId(Number(e.target.value) || null)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                        >
+                                            {artistOptions.map((artist) => (
+                                                <option key={artist.id} value={artist.id}>
+                                                    {artist.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Name</label>
+                                        <input
+                                            type="text"
+                                            value={newEventName}
+                                            onChange={(e) => setNewEventName(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            placeholder="เช่น Teetee Por Live"
+                                            disabled={createLoading}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Date / Time</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={newEventDatetime}
+                                            onChange={(e) => setNewEventDatetime(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                            required
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Location</label>
+                                        <input
+                                            type="text"
+                                            value={newEventLocation}
+                                            onChange={(e) => setNewEventLocation(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            placeholder="e.g., Online / Bangkok"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Live platform</label>
+                                        <input
+                                            type="text"
+                                            value={newEventLivePlatform}
+                                            onChange={(e) => setNewEventLivePlatform(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            placeholder="e.g., YouTube Live"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Poster URL</label>
+                                        <input
+                                            type="url"
+                                            value={newEventPosterUrl}
+                                            onChange={(e) => setNewEventPosterUrl(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            placeholder="https://"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Keyword</label>
+                                        <input
+                                            type="text"
+                                            value={newEventKeyword}
+                                            onChange={(e) => setNewEventKeyword(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Hashtag</label>
+                                        <input
+                                            type="text"
+                                            value={newEventHashtag}
+                                            onChange={(e) => setNewEventHashtag(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Info link</label>
+                                        <input
+                                            type="url"
+                                            value={newEventInfoLink}
+                                            onChange={(e) => setNewEventInfoLink(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            placeholder="https://"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Rerun link</label>
+                                        <input
+                                            type="url"
+                                            value={newEventRerunLink}
+                                            onChange={(e) => setNewEventRerunLink(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            placeholder="https://"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Outfit</label>
+                                        <input
+                                            type="url"
+                                            value={newEventOutfit}
+                                            onChange={(e) => setNewOutfit(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Outfit Image URL</label>
+                                        <input
+                                            type="url"
+                                            value={newEventOutfitImg}
+                                            onChange={(e) => setNewOutfit(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">DMD</label>
+                                        <input
+                                            type="url"
+                                            value={newEventDMD}
+                                            onChange={(e) => setNewEventDMD(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            placeholder="DMD Link"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Note</label>
+                                        <textarea
+                                            value={newEventNote}
+                                            onChange={(e) => setNewEventNote(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            placeholder="Additional details"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                </div>
+
+                                {createError && (
+                                    <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                                        {createError}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-wrap justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsCreateModalOpen(false);
+                                            setCreateError(null);
+                                        }}
+                                        className="rounded-2xl border border-brand-sidebar-border/70 px-5 py-3 text-xs uppercase tracking-widest font-bold text-content-text-main hover:bg-brand-sidebar-border/20 transition"
                                         disabled={createLoading}
                                     >
-                                        <option value="">Select Artist</option>
-                                        {artistOptions.map((artist) => (
-                                            <option key={artist.id} value={artist.id}>{artist.name}</option>
-                                        ))}
-                                    </select>
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Event Name</span>
-                                    <input
-                                        type="text"
-                                        value={newEventName}
-                                        onChange={(event) => setNewEventName(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        placeholder="เช่น Teetee Por Live"
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
                                         disabled={createLoading}
-                                        required
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Date and Time</span>
-                                    <input
-                                        type="datetime-local"
-                                        value={newEventDatetime}
-                                        onChange={(event) => setNewEventDatetime(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        disabled={createLoading}
-                                        required
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Location</span>
-                                    <input
-                                        type="text"
-                                        value={newEventLocation}
-                                        onChange={(event) => setNewEventLocation(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        placeholder="e.g., Online / Bangkok"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Live Platform</span>
-                                    <input
-                                        type="text"
-                                        value={newEventLivePlatform}
-                                        onChange={(event) => setNewEventLivePlatform(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        placeholder="e.g., YouTube Live"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Poster URL</span>
-                                    <input
-                                        type="url"
-                                        value={newEventPosterUrl}
-                                        onChange={(event) => setNewEventPosterUrl(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        placeholder="https://"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Keyword</span>
-                                    <input
-                                        type="text"
-                                        value={newEventKeyword}
-                                        onChange={(event) => setNewEventKeyword(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Hashtag</span>
-                                    <input
-                                        type="text"
-                                        value={newEventHashtag}
-                                        onChange={(event) => setNewEventHashtag(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Info Link</span>
-                                    <input
-                                        type="url"
-                                        value={newEventInfoLink}
-                                        onChange={(event) => setNewEventInfoLink(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        placeholder="https://"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Rerun Link</span>
-                                    <input
-                                        type="url"
-                                        value={newEventRerunLink}
-                                        onChange={(event) => setNewEventRerunLink(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        placeholder="https://"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>DMD</span>
-                                    <input
-                                        type="text"
-                                        value={newEventDMD}
-                                        onChange={(event) => setNewEventDMD(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        placeholder="DMD Link"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Note</span>
-                                    <textarea
-                                        value={newEventNote}
-                                        onChange={(event) => setNewEventNote(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        placeholder="Additional details"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-                            </div>
-
-                            {createError && (
-                                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                                    {createError}
+                                        className="rounded-2xl bg-brand-primary px-3 py-3 text-xs uppercase tracking-widest font-bold text-white hover:bg-brand-primary/90 transition disabled:opacity-60"
+                                    >
+                                        {createLoading ? (
+                                            <><LoaderCircle className="h-4 w-4 animate-spin" /> Saving...</>
+                                        ) : (
+                                            <>Save Data</>
+                                        )}
+                                    </button>
                                 </div>
-                            )}
-
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsCreateModalOpen(false);
-                                        setCreateError(null);
-                                    }}
-                                    className="rounded-2xl border border-brand-sidebar-border px-4 py-2.5 text-sm font-semibold text-content-text-sub transition hover:bg-brand-sidebar-border/20"
-                                    disabled={createLoading}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
-                                    disabled={createLoading}
-                                >
-                                    {createLoading ? (
-                                        <><LoaderCircle className="h-4 w-4 animate-spin" /> Saving...</>
-                                    ) : (
-                                        <>Save Data</>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
