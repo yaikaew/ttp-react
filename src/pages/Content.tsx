@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react';
-import { Plus, X } from 'lucide-react';
+import { LoaderCircle, Plus, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useContent } from '../hooks/useContent';
 import { useFilter } from '../hooks/useFilter';
@@ -189,8 +189,8 @@ const Content = () => {
                     <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl">
                         <div className="flex items-start justify-between gap-4 border-b border-brand-sidebar-border/50 pb-4">
                             <div>
-                                <h3 className="text-xl font-black text-content-text-main">เพิ่มเนื้อหาใหม่</h3>
-                                <p className="text-sm text-content-text-sub">เพิ่มข้อมูล Contents ใหม่ไปยังฐานข้อมูล</p>
+                                <h3 className="text-lg font-bold">เพิ่มข้อมูลใน Contents</h3>
+                                <p className="text-xs text-content-text-sub">เพิ่มข้อมูล Contents ใหม่ไปยังฐานข้อมูล</p>
                             </div>
                             <button
                                 onClick={() => {
@@ -204,119 +204,128 @@ const Content = () => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateContent} className="mt-6 space-y-4">
-                            {createError && (
-                                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                    {createError}
+                        <div className="max-h-[70vh] overflow-y-auto p-6">
+                            <form onSubmit={handleCreateContent} className="space-y-5">
+                                {createError && (
+                                    <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                        {createError}
+                                    </div>
+                                )}
+
+                                <div className="grid gap-4 sm:grid-cols-2">
+
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Artist</label>
+                                        <select
+                                            value={newContentArtistId ?? ''}
+                                            onChange={(e) => setNewContentArtistId(Number(e.target.value) || null)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                        >
+                                            {artistOptions.map((artist) => (
+                                                <option key={artist.id} value={artist.id}>
+                                                    {artist.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Name</label>
+                                        <input
+                                            type="text"
+                                            value={newContentName}
+                                            onChange={(e) => setNewContentName(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                            required
+                                        />
+                                    </div>
                                 </div>
-                            )}
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Type</label>
+                                        <select
+                                            value={newContentType}
+                                            onChange={(e) => setNewContentType(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                        >
+                                            <option value="">เลือกประเภท</option>
+                                            <option value="Online Shows">Online Shows</option>
+                                            <option value="Special">Special</option>
+                                            <option value="BTS">BTS</option>
+                                            <option value="Press Tour">Press Tour</option>
+                                            <option value="Press Cons">Press Cons</option>
+                                            <option value="Reaction">Reaction</option>
+                                            <option value="Live">Live</option>
+                                            <option value="Interview">Interview</option>
+                                            <option value="Live Event">Live Event</option>
+                                        </select>
+                                    </div>
 
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Artist</span>
-                                    <select
-                                        value={newContentArtistId ?? ''}
-                                        onChange={(event) => setNewContentArtistId(Number(event.target.value) || null)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">Date</label>
+                                        <input
+                                            type="date"
+                                            value={newContentDate}
+                                            onChange={(e) => setNewContentDate(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-4">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">IMG URL</label>
+                                        <input
+                                            type="text"
+                                            value={newContentImg}
+                                            placeholder="https://img.youtube.com/vi//maxresdefault.jpg"
+                                            onChange={(e) => setNewContentImg(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-4">
+                                    <div>
+                                        <label className="block text-[11px] uppercase tracking-[0.24em] text-content-text-muted">URL</label>
+                                        <input
+                                            type="text"
+                                            value={newContentLink}
+                                            onChange={(e) => setNewContentLink(e.target.value)}
+                                            className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
+                                            disabled={createLoading}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsCreateModalOpen(false);
+                                            setCreateError(null);
+                                        }}
+                                        className="rounded-2xl border border-brand-sidebar-border/70 px-5 py-3 text-xs uppercase tracking-widest font-bold text-content-text-main hover:bg-brand-sidebar-border/20 transition"
                                         disabled={createLoading}
                                     >
-                                        <option value="">Artist</option>
-                                        {artistOptions.map((artist) => (
-                                            <option key={artist.id} value={artist.id}>{artist.name}</option>
-                                        ))}
-                                    </select>
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Name</span>
-                                    <input
-                                        type="text"
-                                        value={newContentName}
-                                        onChange={(event) => setNewContentName(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
                                         disabled={createLoading}
-                                        required
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Type</span>
-                                    <select
-                                        value={newContentType}
-                                        onChange={(event) => setNewContentType(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        disabled={createLoading}
+                                        className="rounded-2xl bg-brand-primary px-3 py-3 text-xs uppercase tracking-widest font-bold text-white hover:bg-brand-primary/90 transition disabled:opacity-60"
                                     >
-                                        <option value="">เลือกประเภท</option>
-                                        <option value="Online Shows">Online Shows</option>
-                                        <option value="Special">Special</option>
-                                        <option value="BTS">BTS</option>
-                                        <option value="Press Tour">Press Tour</option>
-                                        <option value="Press Cons">Press Cons</option>
-                                        <option value="Reaction">Reaction</option>
-                                        <option value="Live">Live</option>
-                                        <option value="Interview">Interview</option>
-                                        <option value="Live Event">Live Event</option>
-                                    </select>
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main">
-                                    <span>Date</span>
-                                    <input
-                                        type="date"
-                                        value={newContentDate}
-                                        onChange={(event) => setNewContentDate(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        disabled={createLoading}
-                                        required
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main sm:col-span-2">
-                                    <span>IMG URL</span>
-                                    <input
-                                        type="text"
-                                        value={newContentImg}
-                                        placeholder="https://img.youtube.com/vi//maxresdefault.jpg"
-                                        onChange={(event) => setNewContentImg(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-
-                                <label className="flex flex-col gap-2 text-sm font-medium text-content-text-main sm:col-span-2">
-                                    <span>Link</span>
-                                    <input
-                                        type="text"
-                                        value={newContentLink}
-                                        onChange={(event) => setNewContentLink(event.target.value)}
-                                        className="rounded-2xl border border-brand-sidebar-border bg-page-bg px-4 py-3 outline-none focus:border-brand-primary"
-                                        disabled={createLoading}
-                                    />
-                                </label>
-                            </div>
-
-                            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsCreateModalOpen(false);
-                                        setCreateError(null);
-                                    }}
-                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                                    disabled={createLoading}
-                                >
-                                    ยกเลิก
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="rounded-2xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-                                    disabled={createLoading}
-                                >
-                                    {createLoading ? 'กำลังบันทึก...' : 'บันทึกเนื้อหา'}
-                                </button>
-                            </div>
-                        </form>
+                                        {createLoading ? (
+                                            <><LoaderCircle className="h-4 w-4 animate-spin" /> Saving...</>
+                                        ) : (
+                                            <>Save Data</>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}
