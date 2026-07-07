@@ -375,7 +375,7 @@ const CalendarAll = () => {
                                         <input
                                             type="url"
                                             value={newEventOutfitImg}
-                                            onChange={(e) => setNewOutfit(e.target.value)}
+                                            onChange={(e) => setNewOutfitImg(e.target.value)}
                                             className="mt-2 w-full rounded-2xl border border-brand-sidebar-border/60 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/10"
                                             disabled={createLoading}
                                         />
