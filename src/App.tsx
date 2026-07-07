@@ -7,6 +7,7 @@ import { AuthProvider } from './hooks/useAuth';
 const HomePage = lazy(() => import('./pages/Home'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Calendar = lazy(() => import('./pages/Calendar'));
+const CalendarAll = lazy(() => import('./pages/CalendarAll'));
 const OutfitsPage = lazy(() => import('./pages/OutfitsPage'));
 const Filmography = lazy(() => import('./pages/Filmography'));
 const FilmDetail = lazy(() => import('./pages/FilmDetail').then((module) => ({ default: module.FilmDetail })));
@@ -29,6 +30,7 @@ export default function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/calendar" element={<Calendar />} />
+              <Route path="/calendar-all" element={<CalendarAll />} />
               <Route path="/outfits" element={<OutfitsPage />} />
               <Route path="/filmography" element={<Filmography />} />
               <Route path="/filmography/:id" element={<FilmDetail />} />
