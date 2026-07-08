@@ -88,6 +88,7 @@ export const useFilter = <T extends FilterableItem>(initialData: T[]) => {
           filterType.includes("All") ||
           (typeof (item as any).result === "string" && filterType.includes((item as any).result)) ||
           (typeof item.type === "string" && filterType.includes(item.type)) ||
+          (typeof item.category === "string" && filterType.includes(item.category)) ||
           (typeof (item as any).status === "string" && filterType.includes((item as any).status));
 
         // 4. Filter Search

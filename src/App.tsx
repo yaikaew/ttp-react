@@ -14,6 +14,7 @@ const FilmDetail = lazy(() => import('./pages/FilmDetail').then((module) => ({ d
 const Discography = lazy(() => import('./pages/Discography'));
 const PerformancePage = lazy(() => import('./pages/Performance'));
 const ContentPage = lazy(() => import('./pages/Content'));
+const EndorsementsPage = lazy(() => import('./pages/Endorsements'));
 const LoginPage = lazy(() => import('./pages/Login'));
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
               <Route path="/discography" element={<Discography />} />
               <Route path="/performance" element={<PerformancePage />} />
               <Route path="/content" element={<ContentPage />} />
+              <Route path="/endorsements" element={<EndorsementsPage />} />
               <Route path="/login" element={<LoginPage />} />
 
               <Route path="*" element={<Navigate to="/" replace />} />

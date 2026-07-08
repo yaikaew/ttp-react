@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import {
-    Menu, X, Sparkles, Heart, Home, Video, PlayCircle, User, Calendar, Disc3, Film
+    Menu, X, Sparkles, Heart, Home, Video, PlayCircle, User, Calendar, Disc3, Film, BadgeCheck
 } from "lucide-react"
 import { useAuth } from '../hooks/useAuth'
 
@@ -13,8 +13,7 @@ const MENUS = [
     { name: "Filmography", path: "/filmography", icon: Film },
     { name: "Discography", path: "/discography", icon: Disc3 },
     { name: "Performance", path: "/performance", icon: PlayCircle },
-    { name: "Content", path: "/content", icon: Video },
-]
+    { name: "Content", path: "/content", icon: Video },    { name: 'Endorsements', path: '/endorsements', icon: BadgeCheck },]
 
 const Sidebar = () => {
     const location = useLocation()
